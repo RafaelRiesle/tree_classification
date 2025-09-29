@@ -11,7 +11,8 @@ dependencies = [
   "ruff==0.11.4",
   "xlsxwriter==3.2.5",
   "nbformat>=4.2.0 ",
-  "matplotlib"
+  "matplotlib",
+  "ipykernel"
 ]
 
 [tool.ruff.lint]
