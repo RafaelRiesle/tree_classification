@@ -13,7 +13,8 @@ dependencies = [
   "nbformat>=4.2.0 ",
   "matplotlib",
   "ipykernel",
-  "seaborn"
+  "seaborn",
+  "statsmodels"
 ]
 
 [tool.ruff.lint]
