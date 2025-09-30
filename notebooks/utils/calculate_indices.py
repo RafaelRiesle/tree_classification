@@ -50,7 +50,7 @@ class CalculateIndices:
         return df["b8"] - df["b4"]
 
     @staticmethod
-    def add_all_features(df: pd.DataFrame):
+    def add_all_indices(df: pd.DataFrame):
         df = df.copy()
         df["ndvi"] = CalculateIndices.calculate_ndvi(df)
         df["gndvi"] = CalculateIndices.calculate_gndvi(df)
