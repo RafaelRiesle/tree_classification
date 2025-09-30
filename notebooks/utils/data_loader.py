@@ -20,3 +20,6 @@ class DataLoader:
         df["date_diff"] = df.groupby("id")["time"].diff().dt.days
         return df
 
+    def feature_extraction(self,df):
+        df["disturbed"] = df["disturbance_year"].apply(lambda x: False if x == 0 else True)
+        return df
