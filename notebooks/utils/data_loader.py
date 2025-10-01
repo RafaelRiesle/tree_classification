@@ -21,5 +21,5 @@ class DataLoader:
         return df
 
     def feature_extraction(self,df):
-        df["disturbed"] = df["disturbance_year"].apply(lambda x: False if x == 0 else True)
+        df["is_disturbed"] = df["disturbance_year"].apply(lambda x: False if x == 0 else True)
         return df
