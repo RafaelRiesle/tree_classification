@@ -12,7 +12,9 @@ dependencies = [
   "xlsxwriter==3.2.5",
   "nbformat>=4.2.0 ",
   "matplotlib",
-  "ipykernel"
+  "ipykernel",
+  "seaborn",
+  "statsmodels"
 ]
 
 [tool.ruff.lint]
