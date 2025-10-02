@@ -7,7 +7,7 @@ class BasicDataAnalysis:
 
     def get_dtypes(self):
         return self.df.dtypes
-    
+
     def get_desricption(self):
         return self.df.describe()
 

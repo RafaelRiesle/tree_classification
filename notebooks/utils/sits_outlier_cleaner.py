@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
@@ -9,22 +8,18 @@ class SITSOutlierCleaner:
         self.contamination = contamination
         self.random_state = random_state
         self.band_columns = []
+        self.cleaned_df = None  # store the cleaned DataFrame
 
     def detect_outliers_isolation_forest(self, df_id):
         df_id = df_id.sort_values("time")
-
         for band in self.band_columns:
             data = df_id[[band]].values
             data_scaled = StandardScaler().fit_transform(data)
-
             model = IsolationForest(
                 contamination=self.contamination, random_state=self.random_state
             )
             preds = model.fit_predict(data_scaled)
-
-            # Spezifischer Outlier-Flag pro Band
             df_id[f"is_outlier_{band}"] = preds == -1
-
         return df_id
 
     def interpolate_outliers(self, df_id):
@@ -38,8 +33,7 @@ class SITSOutlierCleaner:
 
     def fit_transform(self, df, band_columns):
         self.band_columns = band_columns
-
-        cleaned_df = (
+        self.cleaned_df = (
             df.groupby("id", group_keys=False)
             .apply(self.detect_outliers_isolation_forest)
             .pipe(
@@ -48,4 +42,18 @@ class SITSOutlierCleaner:
                 )
             )
         )
-        return cleaned_df
+        return self.cleaned_df
+
+    def add_any_outlier_flag(self):
+        """Add a column 'any_outlier' indicating if any band is an outlier"""
+        if self.cleaned_df is None:
+            raise ValueError("Please run fit_transform first.")
+        outlier_cols = [f"is_outlier_{band}" for band in self.band_columns]
+        self.cleaned_df["any_outlier"] = self.cleaned_df[outlier_cols].any(axis=1)
+        return self.cleaned_df
+
+    def get_interpolated_only(self):
+        """Return only the original band columns plus id and time"""
+        if self.cleaned_df is None:
+            raise ValueError("Please run fit_transform first.")
+        return self.cleaned_df[["id", "time"] + self.band_columns].copy()
