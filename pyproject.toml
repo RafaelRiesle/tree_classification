@@ -15,7 +15,7 @@ dependencies = [
   "ipykernel",
   "seaborn",
   "statsmodels",
-  "scikit-learn==1.5.2"
+  "scikit-learn"
 ]
 
 [tool.ruff.lint]
