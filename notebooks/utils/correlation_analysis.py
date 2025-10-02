@@ -53,8 +53,3 @@ class CorrelationAnalysis:
         plt.xticks(rotation=45, ha="right")
         plt.yticks(rotation=0)
         plt.show()
-
-    def plot_correlation_distribution(self, sample_size=1000):
-        sample_df = self.df.sample(sample_size)
-        sns.set_theme(style="ticks")
-        sns.pairplot(sample_df, hue="species")

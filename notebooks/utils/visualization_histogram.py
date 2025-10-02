@@ -6,7 +6,7 @@ class HistogramDataVisualization:
         self,
         df,
         figsize=(10, 6),
-        color="black",
+        color="blue",
         title_fontsize=16,
         label_fontsize=12,
         rotation=45,
@@ -19,10 +19,9 @@ class HistogramDataVisualization:
         self.rotation = rotation
 
     def plot_unique_ids(self, column):
-        # Anzahl unique IDs pro Jahr berechnen
         counts = self.df.groupby(column)["id"].nunique().reset_index(name="unique_ids")
-
-        fig, ax = plt.subplots(figsize=self.figsize)
+        counts = counts.sort_values(by="unique_ids", ascending=False)
+        _, ax = plt.subplots(figsize=self.figsize)
         bars = ax.bar(counts[column], counts["unique_ids"], color=self.color)
         ax.bar_label(bars)
 
@@ -34,13 +33,24 @@ class HistogramDataVisualization:
         plt.tight_layout()
         plt.show()
 
+    def plot_id_distribution(self):
+        rows_per_id = self.df.groupby("id").size()
+        plt.figure(figsize=(self.figsize))
+        plt.hist(rows_per_id, bins=50, color=self.color)
+        plt.xlabel("Rows per ID")
+        plt.ylabel("Number of IDs")
+        plt.title("Distribution of Number of Rows per ID")
+        plt.grid(True, linestyle="--", alpha=0.5)
+        plt.tight_layout()
+        plt.show()
+
     def plot_median_id_distribution(self):
         result = self.df.groupby(["id", "year"]).size().reset_index(name="count")
         median_per_year = (
             result.groupby("year")["count"].median().reset_index(name="median_count")
         )
 
-        fig, ax = plt.subplots(figsize=self.figsize)  # gleiche figsize
+        _, ax = plt.subplots(figsize=self.figsize)
         bars = ax.bar(
             median_per_year["year"], median_per_year["median_count"], color=self.color
         )
