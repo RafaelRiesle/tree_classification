@@ -7,22 +7,40 @@ class DataLoader:
         pass
 
     def load_transform(self, path):
-        df = pd.read_csv(path)
-        df["time"] = pd.to_datetime(df["time"], format="%Y-%m-%d")
-        df = df.sort_values(["id", "time"])
+        try:
+            df = pd.read_csv(path)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File {path} not found.")
+        except pd.errors.ParserError:
+            raise ValueError(f"File {path} could not be read as CSV.")
+
+        if not {"time", "id"}.issubset(df.columns):
+            raise ValueError("CSV must contain 'time' and 'id' columns.")
+
+        df["time"] = pd.to_datetime(df["time"], errors="coerce")
+        if df["time"].isna().any():
+            raise ValueError(
+                "Some values in 'time' could not be converted to datetime."
+            )
+
+        grouped = df.groupby(["time", "id"])
+        df = grouped.mean(numeric_only=True).reset_index()
+        df = df.sort_values(["id", "time"]).reset_index(drop=True)
         return df
 
     def date_feature_extraction(self, df):
         df = df.copy()
         df["month_num"] = df["time"].dt.month
         df["year"] = df["time"].dt.year
-        seasons = np.array(["Winter", "Spring", "Summer", "Autumn"])
-        df["season"] = seasons[((df["month_num"] % 12) // 3)]
+        seasons = ["Winter", "Spring", "Summer", "Autumn"]
+        df["season"] = df["month_num"].apply(lambda m: seasons[((m % 12) // 3)])
         df["date_diff"] = df.groupby("id")["time"].diff().dt.days
         return df
 
     def feature_extraction(self, df):
-        df["is_disturbed"] = df["disturbance_year"].apply(
-            lambda x: False if x == 0 else True
-        )
+        df = df.copy()
+        if "disturbance_year" not in df.columns:
+            df["is_disturbed"] = False
+        else:
+            df["is_disturbed"] = df["disturbance_year"].apply(lambda x: x != 0)
         return df
