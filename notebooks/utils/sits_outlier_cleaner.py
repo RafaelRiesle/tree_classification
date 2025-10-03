@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import zscore
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
@@ -8,7 +9,7 @@ class SITSOutlierCleaner:
         self.contamination = contamination
         self.random_state = random_state
         self.band_columns = []
-        self.cleaned_df = None  # store the cleaned DataFrame
+        self.cleaned_df = None 
 
     def detect_outliers_isolation_forest(self, df_id):
         df_id = df_id.sort_values("time")
@@ -16,7 +17,9 @@ class SITSOutlierCleaner:
             data = df_id[[band]].values
             data_scaled = StandardScaler().fit_transform(data)
             model = IsolationForest(
-                contamination=self.contamination, random_state=self.random_state
+                contamination=self.contamination,
+                random_state=self.random_state,
+                n_estimators=200
             )
             preds = model.fit_predict(data_scaled)
             df_id[f"is_outlier_{band}"] = preds == -1
@@ -57,3 +60,20 @@ class SITSOutlierCleaner:
         if self.cleaned_df is None:
             raise ValueError("Please run fit_transform first.")
         return self.cleaned_df[["id", "time"] + self.band_columns].copy()
+
+    def remaining_outliers_ratio(self):
+        """Quote der noch vom IsolationForest markierten Ausreißer"""
+        if self.cleaned_df is None:
+            raise ValueError("Bitte zuerst fit_transform ausführen.")
+        outlier_cols = [f"is_outlier_{band}" for band in self.band_columns]
+        remaining = self.cleaned_df[outlier_cols].any(axis=1).sum()
+        total = len(self.cleaned_df)
+        return remaining / total
+
+    def zscore_outlier_ratio(self, threshold=3):
+        """Anteil der Werte, die nach Z-Score-Definition Ausreißer sind"""
+        if self.cleaned_df is None:
+            raise ValueError("Bitte zuerst fit_transform ausführen.")
+        z = self.cleaned_df[self.band_columns].apply(zscore)
+        mask = (np.abs(z) > threshold).any(axis=1)
+        return mask.mean()

@@ -1,26 +1,18 @@
 import matplotlib.pyplot as plt
 import math
 
-def plot_outlier_detection_grid(df, bands, ncols=2):
 
+def plot_outlier_detection_grid(df, bands, ncols=2):
     n_bands = len(bands)
     nrows = math.ceil(n_bands / ncols)
 
     fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 3 * nrows), sharex=True)
-
-    # Flatten axes für einfaches Iterieren
     axes = axes.flatten()
 
     for i, band in enumerate(bands):
         ax = axes[i]
-
-        # Originalwerte
-        ax.plot(df["time"], df[f"{band}_original"], "o-", label="Original", alpha=0.6)
-
-        # Cleaned (Interpoliert)
-        ax.plot(df["time"], df[band], "o-", label="Cleaned", alpha=0.8)
-
-        # Outliers markieren
+        ax.plot(df["time"], df[f"{band}_original"], ".-", label="Original", alpha=0.6)
+        ax.plot(df["time"], df[band], ".-", label="Cleaned", alpha=0.8)
         outliers = df[df[f"is_outlier_{band}"]]
         ax.scatter(
             outliers["time"],
@@ -28,7 +20,7 @@ def plot_outlier_detection_grid(df, bands, ncols=2):
             color="red",
             s=80,
             marker="x",
-            label="Outliers"
+            label="Outliers",
         )
 
         ax.set_title(f"Band: {band}")
@@ -41,7 +33,7 @@ def plot_outlier_detection_grid(df, bands, ncols=2):
     plt.xlabel("Time")
     plt.tight_layout()
     plt.show()
-    
+
 
 def plot_with_outliers_subplot(df, spectral_bands):
     _, axes = plt.subplots(2, 1, figsize=(14, 8), sharex=True)
