@@ -31,14 +31,14 @@ class CalculateIndices:
 
     @staticmethod
     def calculate_mcari(df: pd.DataFrame):
-        return ((df["b5"] - df["b4"]) - 0.2 * (df["b5"] - df["b4"])) * (
+        return ((df["b5"] - df["b4"]) - 0.2 * (df["b5"] - df["b3"])) * (
             df["b5"] / df["b4"]
         )
 
     @staticmethod
     def calculate_reip(df: pd.DataFrame):
-        return (700 + 40 * ((df["b4"] - df["b7"]) / 2) - df["b5"]) / (
-            df["b6"] - df["b5"]
+        return (700 + 40 * (((df["b4"] + df["b7"]) / 2) - df["b5"]) / (
+            df["b6"] - df["b5"])
         )
 
     @staticmethod
