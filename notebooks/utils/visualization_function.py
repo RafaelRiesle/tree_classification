@@ -71,7 +71,7 @@ def plot_autocorrelation(df, column):
     plt.show()
 
 
-def plot_band_differences(df, lag=26, n_cols=2):
+def plot_band_differences(df, lag=52, n_cols=2):
     band_columns = [col for col in df.columns if col.startswith("b")]
     df_shifted = df[band_columns].shift(periods=lag)
 
