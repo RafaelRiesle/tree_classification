@@ -23,8 +23,13 @@ class DataLoader:
                 "Some values in 'time' could not be converted to datetime."
             )
 
-        grouped = df.groupby(["time", "id"])
-        df = grouped.mean(numeric_only=True).reset_index()
+        agg_dict = {
+            col: "mean" if pd.api.types.is_numeric_dtype(dtype) else "first"
+            for col, dtype in df.dtypes.items()
+            if col not in ["time", "id"]
+        }
+
+        df = df.groupby(["time", "id"], as_index=False).agg(agg_dict)
         df = df.sort_values(["id", "time"]).reset_index(drop=True)
         return df
 
