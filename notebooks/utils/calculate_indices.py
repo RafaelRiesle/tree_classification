@@ -31,9 +31,11 @@ class CalculateIndices:
 
     @staticmethod
     def calculate_mcari(df: pd.DataFrame):
-        return ((df["b5"] - df["b4"]) - 0.2 * (df["b5"] - df["b3"])) * (
+        mcari = ((df["b5"] - df["b4"]) - 0.2 * (df["b5"] - df["b3"])) * (
             df["b5"] / df["b4"]
         )
+        mcari = mcari.replace([np.inf, -np.inf], np.nan)
+        return mcari
 
     @staticmethod
     def calculate_reip(df: pd.DataFrame):
