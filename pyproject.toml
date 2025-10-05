@@ -15,7 +15,8 @@ dependencies = [
   "ipykernel",
   "seaborn",
   "statsmodels",
-  "scikit-learn"
+  "scikit-learn",
+  "xgboost"
 ]
 
 [tool.ruff.lint]
