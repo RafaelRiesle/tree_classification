@@ -1,7 +1,8 @@
+from utils.constants import COLOR
 import matplotlib.pyplot as plt
 
 
-def plot_date_diff_distribution(df, column="date_diff", bins=20, color="blue"):
+def plot_date_diff_distribution(df, column="date_diff", bins=20, color=COLOR):
     data = df[column].dropna()
     median_val = data.median()
 

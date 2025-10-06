@@ -2,7 +2,9 @@ import math
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from utils.constants import COLOR, spectral_bands
 
 
 def plot_intervals_timestamps(df: pd.DataFrame, addition: str = None):
@@ -32,7 +34,7 @@ def plot_intervals_timestamps(df: pd.DataFrame, addition: str = None):
 
 def plot_top_correlations(df: pd.DataFrame):
     fig, ax = plt.subplots(figsize=(10, 6))
-    bars = ax.bar(df["Columns"], df["Value"], color="blue")
+    bars = ax.bar(df["Columns"], df["Value"], color=COLOR)
     for bar in bars:
         height = bar.get_height()
         ax.annotate(
@@ -53,44 +55,32 @@ def plot_top_correlations(df: pd.DataFrame):
     plt.show()
 
 
-def plot_autocorrelation(df, column):
-    df_correlation = df.set_index("time")
-    y = df_correlation[column]
+def plot_band_differences(df, lag=26, n_cols=2, date_col="time"):
+    band_columns = spectral_bands
+    df = df.copy()
 
-    _, axes = plt.subplots(1, 2, figsize=(16, 4))
+    if date_col not in df.columns and not isinstance(df.index, pd.DatetimeIndex):
+        raise ValueError(f"{date_col} not found and index is not datetime.")
 
-    # ACF
-    plot_acf(y, lags=20, alpha=0.05, ax=axes[0])
-    axes[0].set_title(f"Autocorrelation (ACF {column})")
+    # Ensure datetime index
+    if date_col in df.columns:
+        df[date_col] = pd.to_datetime(df[date_col])
+        df.set_index(date_col, inplace=True)
 
-    # PACF
-    plot_pacf(y, lags=20, alpha=0.05, ax=axes[1])
-    axes[1].set_title(f"partielle autocorrelation partielle (PACF {column})")
-
-    plt.tight_layout()
-    plt.show()
-
-
-def plot_band_differences(df, lag=52, n_cols=2):
-    band_columns = [col for col in df.columns if col.startswith("b")]
     df_shifted = df[band_columns].shift(periods=lag)
-
-    # Calculate differences
     df_diff = df[band_columns] - df_shifted
 
-    # Setup subplots
     n_bands = len(band_columns)
     n_rows = math.ceil(n_bands / n_cols)
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 3 * n_rows), sharex=True)
     axes = axes.flatten()
 
-    # Plot each band
     for i, col in enumerate(band_columns):
-        axes[i].plot(df.index, df[col], label="Original", marker=".", color="blue")
+        axes[i].plot(df.index, df[col], label="Original", marker=".", color=COLOR)
         axes[i].plot(
             df.index,
             df_shifted[col],
-            label="Shifted (t-1Y)",
+            label=f"Shifted (t-{lag})",
             linestyle=":",
             color="orange",
         )
@@ -99,12 +89,52 @@ def plot_band_differences(df, lag=52, n_cols=2):
         )
 
         axes[i].set_title(f"Band: {col}")
-        axes[i].set_xlabel("Time")
         axes[i].set_ylabel("Reflectance / Index Value")
         axes[i].legend()
         axes[i].grid()
+
+        # Format x-axis as years
+        axes[i].xaxis.set_major_locator(mdates.YearLocator())
+        axes[i].xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_autocorrelation_bands(df, bands, lags=26):
+    """
+    Plot ACF and PACF for multiple spectral bands.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing 'time' and spectral band columns.
+    bands : list of str
+        Column names (spectral bands) to analyze.
+    lags : int
+        Number of lags to show in ACF/PACF.
+    """
+    df_correlation = df.set_index("time")
+
+    n_bands = len(bands)
+    fig, axes = plt.subplots(n_bands, 2, figsize=(14, 2 * n_bands))
+
+    if n_bands == 1:
+        axes = [axes]
+
+    for i, band in enumerate(bands):
+        y = df_correlation[band].dropna()
+
+        # ACF
+        plot_acf(y, lags=lags, alpha=0.05, ax=axes[i][0])
+        axes[i][0].set_title(f"Autocorrelation (ACF {band})")
+
+        # PACF
+        plot_pacf(y, lags=lags, alpha=0.05, ax=axes[i][1])
+        axes[i][1].set_title(f"Partial Autocorrelation (PACF {band})")
 
     plt.tight_layout()
     plt.show()

@@ -1,9 +1,10 @@
 import pandas as pd
+from utils.constants import COLOR
 import matplotlib.pyplot as plt
 
 
 class DisturbedYearAnalysis:
-    def __init__(self, df, figsize=(10, 6), color="blue"):
+    def __init__(self, df, figsize=(10, 6), color=COLOR):
         self.df = df
         self.figsize = figsize
         self.color = color
@@ -25,6 +26,7 @@ class DisturbedYearAnalysis:
         plt.ylabel("Count")
         plt.title(f"Comparison of {column.replace('_', ' ').title()} Values")
         plt.grid(True, linestyle="--", alpha=0.5)
+        plt.tight_layout()
         plt.show()
 
     def plot_disturbance_by_species(
@@ -46,4 +48,5 @@ class DisturbedYearAnalysis:
         )
         plt.tight_layout()
         plt.grid(True, linestyle="--", alpha=0.5)
+        plt.tight_layout()
         plt.show()

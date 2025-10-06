@@ -30,7 +30,7 @@ class DataLoader:
         }
 
         df = df.groupby(["time", "id"], as_index=False).agg(agg_dict)
-        df = df.sort_values(["id", "time"]).reset_index(drop=True)
+        df = df.sort_values(["id", "time"]).reset_index(drop=True).drop_duplicates()
         return df
 
     def date_feature_extraction(self, df):

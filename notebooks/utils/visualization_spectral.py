@@ -49,7 +49,7 @@ class SpectralBandPlotter:
         years = df_melted["year"].unique()
         n_years = len(years)
 
-        fig, axes = plt.subplots(
+        _, axes = plt.subplots(
             nrows=n_years, ncols=1, figsize=(24, 6 * n_years), sharex=True
         )
         if n_years == 1:
@@ -150,7 +150,7 @@ class SpectralBandPlotter:
         fig, axes = plt.subplots(1, n_years, figsize=(5 * n_years, 5), sharey=True)
 
         if n_years == 1:
-            axes = [axes]  # ensure axes is iterable
+            axes = [axes]
 
         for ax, year in zip(axes, years):
             df_year = self.df[self.df["year"] == year]

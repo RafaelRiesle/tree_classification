@@ -11,3 +11,5 @@ indices = [
     "masvi2",
     "dvi",
 ]
+
+COLOR = "royalblue"
