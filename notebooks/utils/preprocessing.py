@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
+
 class Preprocessing:
-    
     @staticmethod
     def interpolate_b4(df: pd.DataFrame, method="linear") -> pd.DataFrame:
         """interpolate b4 = 0 values"""

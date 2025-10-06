@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from utils.constants import COLOR
 
 
 class HistogramDataVisualization:
@@ -6,7 +7,7 @@ class HistogramDataVisualization:
         self,
         df,
         figsize=(10, 6),
-        color="blue",
+        color=COLOR,
         title_fontsize=16,
         label_fontsize=12,
         rotation=45,

@@ -39,8 +39,8 @@ class CalculateIndices:
 
     @staticmethod
     def calculate_reip(df: pd.DataFrame):
-        reip = (700 + 40 * (((df["b4"] + df["b7"]) / 2) - df["b5"]) / (
-            df["b6"] - df["b5"])
+        reip = 700 + 40 * (((df["b4"] + df["b7"]) / 2) - df["b5"]) / (
+            df["b6"] - df["b5"]
         )
         reip = reip.replace([np.inf, -np.inf], np.nan)
         return reip

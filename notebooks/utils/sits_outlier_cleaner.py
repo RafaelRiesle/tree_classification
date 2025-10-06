@@ -9,7 +9,7 @@ class SITSOutlierCleaner:
         self.contamination = contamination
         self.random_state = random_state
         self.band_columns = []
-        self.cleaned_df = None 
+        self.cleaned_df = None
 
     def detect_outliers_isolation_forest(self, df_id):
         df_id = df_id.sort_values("time")
@@ -19,7 +19,7 @@ class SITSOutlierCleaner:
             model = IsolationForest(
                 contamination=self.contamination,
                 random_state=self.random_state,
-                n_estimators=200
+                n_estimators=200,
             )
             preds = model.fit_predict(data_scaled)
             df_id[f"is_outlier_{band}"] = preds == -1
