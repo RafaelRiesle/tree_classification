@@ -1,0 +1,97 @@
+import pandas as pd
+import numpy as np
+from scipy.stats import linregress
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
+import xgboost as xgb
+
+from preprocessing.preprocessing_pipeline.constants import spectral_bands, indices
+
+
+class DetectDisturbedTrees:
+    
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        self.bands_and_indices = spectral_bands + indices
+        self.model = None
+
+    def scale_data(self, df):
+        df_scaled = df.copy()
+        df_scaled[self.bands_and_indices] = df.groupby("species")[self.bands_and_indices].transform(
+            lambda x: (x - x.min()) / (x.max() - x.min())
+        )
+        return df_scaled
+
+    def get_yearly_data(self, df_scaled):
+        return df_scaled.groupby(["id", "year"])[self.bands_and_indices].mean().reset_index()
+
+    def get_std(self, df_yearly):
+        return df_yearly.groupby("id")[self.bands_and_indices].std().add_suffix("_std").reset_index()
+
+    def get_slope(self, df_yearly):
+        slope_data = []
+        for id_, group in df_yearly.groupby("id"):
+            if group["year"].nunique() < 2:
+                continue
+            slopes = {f"{col}_slope": linregress(group["year"], group[col]).slope for col in self.bands_and_indices}
+            slopes["id"] = id_
+            slope_data.append(slopes)
+        return pd.DataFrame(slope_data)
+   
+    def get_label(self, df, df_std_slope):
+        labels = df.groupby("id")["is_disturbed"].first().reset_index()
+        return df_std_slope.merge(labels, on="id", how="left")
+
+    def prepare_data(self, df):
+        df_scaled = self.scale_data(df)
+        df_yearly = self.get_yearly_data(df_scaled)
+        df_std = self.get_std(df_yearly)
+        df_slope = self.get_slope(df_yearly)
+        df_std_slope = df_std.merge(df_slope, on="id", how="left")
+        df_std_slope = self.get_label(df, df_std_slope)
+        return df_std_slope
+    
+
+    def get_balanced_train_data(self, df):
+        disturbed = df[df["is_disturbed"]]
+        healthy = df[~df["is_disturbed"]]
+        top_feats = ["b11_slope", "b5_slope", "b11_std", "gndvi_std"]
+
+        healthy = healthy.copy()
+        healthy["combi"] = healthy[top_feats].mean(axis=1)
+        healthy = healthy.nsmallest(10000, "combi")
+
+        return pd.concat([disturbed, healthy]).sample(frac=1, random_state=self.random_state)
+        
+
+    def train_model(self, df):
+        feature_cols = [c for c in df.columns if c.endswith(("_std", "_slope"))]
+        X, y = df[feature_cols], df["is_disturbed"].astype(int)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, stratify=y, test_size=0.3, random_state=self.random_state
+        )
+
+        model = xgb.XGBClassifier(
+            n_estimators=200,
+            learning_rate=0.1,
+            max_depth=4,
+            random_state=self.random_state,
+            eval_metric="logloss",
+        )
+        model.fit(X_train, y_train)
+        print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
+        print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
+        return model
+
+
+    def apply_model(self, model, df):
+        feature_cols = [c for c in df.columns if c.endswith(("_std", "_slope"))]
+        df["is_disturbed_pred"] = model.predict(df[feature_cols])
+        return df
+    
+    def run(self, df):
+        full_df = self.prepare_data(df)
+        train_df = self.get_balanced_train_data(full_df)
+        model = self.train_model(train_df)
+        self.model = model
+        return self.apply_model(model, full_df)
