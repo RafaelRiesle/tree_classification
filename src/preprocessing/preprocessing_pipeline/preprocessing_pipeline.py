@@ -1,34 +1,26 @@
 from preprocessing.preprocessing_pipeline.data_loader import DataLoader
 from preprocessing.preprocessing_steps.outlier_cleaner import SITSOutlierCleaner
+from preprocessing.preprocessing_pipeline.constants import spectral_bands, indices
 
 class PreprocessingPipeline:
     def __init__(
         self,
         path,
-        outlier_cleaner=False,
+        outlier_cleaning=False,
     ):
         self.path = path
-        self.outlier_cleaner = outlier_cleaner
+        self.outlier_cleaning = outlier_cleaning
 
-        self.loader = DataLoader()
+        self.data_loader = DataLoader()
         self.outlier_cleaner = SITSOutlierCleaner()
 
         self.df = None
 
-    def run(self, path):
-        df = self.loader.load_transform(path)
+    def run(self):
+        df = self.data_loader.load_transform(self.path)
 
-        if self.anomaly_detection:
-            df = self.anomaly_detector.detect(df)
+        if self.outlier_cleaning:
+            df = self.outlier_cleaner.fit_transform(df, spectral_bands)
+            df = self.outlier_cleaner.add_any_outlier_flag()
 
-        if self.change_labels:
-            df = self.label_transformer.transform(df)
-
-        if self.undersampling:
-            df = self.undersampler.apply(df)
-
-        if self.create_indices:
-            df = self.index_creator.create(df)
-
-        df = self.feature_engineer.add_features(df)
         return df
