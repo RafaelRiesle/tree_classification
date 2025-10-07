@@ -60,7 +60,11 @@ class DetectDisturbedTrees:
 
         healthy = healthy.copy()
         healthy["combi_top_features"] = healthy[top_features].mean(axis=1)
-        healthy_sub = (healthy.sort_values(by="combi_top_features").head(20000).sample(n=10000, random_state=42))
+        healthy_sub = (
+            healthy.sort_values(by="combi_top_features")
+            .head(20000)
+            .sample(n=10000, random_state=self.random_state)
+        )
 
         return pd.concat([disturbed, healthy_sub]).sample(frac=1, random_state=self.random_state).reset_index(drop=True)
        
@@ -77,19 +81,19 @@ class DetectDisturbedTrees:
             learning_rate=0.1,
             max_depth=4,
             random_state=self.random_state,
-            scale_pos_weight = self.scale_pos_weight,
+            scale_pos_weight=self.scale_pos_weight,
             eval_metric="logloss",
         )
         model.fit(X_train, y_train)
-        print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
-        print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
+        # print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
+        # print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
         return model
 
 
-    def apply_model(self, model, df):
-        feature_cols = [c for c in df.columns if c.endswith(("_std", "_slope"))]
-        df["is_disturbed_pred"] = model.predict(df[feature_cols])
-        return df
+    def apply_model(self, model, df_std_slope):
+        feature_cols = [c for c in df_std_slope.columns if c.endswith(("_std", "_slope"))]
+        df_std_slope["is_disturbed_pred"] = model.predict(df_std_slope[feature_cols])
+        return df_std_slope[["id", "is_disturbed_pred"]]
     
     def run(self, df):
         full_df = self.prepare_data(df)
@@ -97,7 +101,14 @@ class DetectDisturbedTrees:
         model = self.train_model(train_df)
         self.model = model
         
-        # Only apply model on "healthy" trees
+        # Only apply the model to trees that are supposedly healthy
         df_healthy = full_df[~full_df["is_disturbed"]].copy()
+        df_pred = self.apply_model(model, df_healthy)
 
-        return self.apply_model(model, df_healthy)
+        df_disturbed = full_df[full_df["is_disturbed"]].copy()
+        df_disturbed["is_disturbed_pred"] = True
+
+        df_all_pred = pd.concat([df_pred, df_disturbed], ignore_index=True)
+        df_final = df.merge(df_all_pred[["id", "is_disturbed_pred"]], on="id", how="left")
+
+        return df_final
