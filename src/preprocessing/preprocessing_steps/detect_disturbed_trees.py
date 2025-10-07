@@ -10,7 +10,8 @@ from preprocessing.preprocessing_pipeline.constants import spectral_bands, indic
 
 class DetectDisturbedTrees:
     
-    def __init__(self, random_state=42):
+    def __init__(self, scale_pos_weight=4, random_state=42):
+        self.scale_pos_weight = scale_pos_weight
         self.random_state = random_state
         self.bands_and_indices = spectral_bands + indices
         self.model = None
@@ -52,21 +53,21 @@ class DetectDisturbedTrees:
         return df_std_slope
     
 
-    def get_balanced_train_data(self, df):
-        disturbed = df[df["is_disturbed"]]
-        healthy = df[~df["is_disturbed"]]
-        top_feats = ["b11_slope", "b5_slope", "b11_std", "gndvi_std"]
+    def get_balanced_train_data(self, df_std_slope):
+        disturbed = df_std_slope[df_std_slope["is_disturbed"]]
+        healthy = df_std_slope[~df_std_slope["is_disturbed"]]
+        top_features = ["b11_slope", "b5_slope", "b11_std", "gndvi_std"]
 
         healthy = healthy.copy()
-        healthy["combi"] = healthy[top_feats].mean(axis=1)
-        healthy = healthy.nsmallest(10000, "combi")
+        healthy["combi_top_features"] = healthy[top_features].mean(axis=1)
+        healthy_sub = (healthy.sort_values(by="combi_top_features").head(20000).sample(n=10000, random_state=42))
 
-        return pd.concat([disturbed, healthy]).sample(frac=1, random_state=self.random_state)
-        
+        return pd.concat([disturbed, healthy_sub]).sample(frac=1, random_state=self.random_state).reset_index(drop=True)
+       
 
-    def train_model(self, df):
-        feature_cols = [c for c in df.columns if c.endswith(("_std", "_slope"))]
-        X, y = df[feature_cols], df["is_disturbed"].astype(int)
+    def train_model(self, train_df):
+        feature_cols = [c for c in train_df.columns if c.endswith(("_std", "_slope"))]
+        X, y = train_df[feature_cols], train_df["is_disturbed"].astype(int)
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, stratify=y, test_size=0.3, random_state=self.random_state
         )
@@ -76,6 +77,7 @@ class DetectDisturbedTrees:
             learning_rate=0.1,
             max_depth=4,
             random_state=self.random_state,
+            scale_pos_weight = self.scale_pos_weight,
             eval_metric="logloss",
         )
         model.fit(X_train, y_train)
@@ -94,4 +96,8 @@ class DetectDisturbedTrees:
         train_df = self.get_balanced_train_data(full_df)
         model = self.train_model(train_df)
         self.model = model
-        return self.apply_model(model, full_df)
+        
+        # Only apply model on "healthy" trees
+        df_healthy = full_df[~full_df["is_disturbed"]].copy()
+
+        return self.apply_model(model, df_healthy)

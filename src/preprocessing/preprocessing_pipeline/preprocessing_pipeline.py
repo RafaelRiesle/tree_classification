@@ -1,5 +1,6 @@
 from preprocessing.preprocessing_pipeline.data_loader import DataLoader
 from preprocessing.preprocessing_steps.outlier_cleaner import SITSOutlierCleaner
+from preprocessing.preprocessing_steps.interpolation import Interpolation
 from preprocessing.features.spectral_indices import CalculateIndices
 from preprocessing.features.basic_features import BasicFeatures
 from preprocessing.features.temporal_features import TemporalFeatures
@@ -13,18 +14,21 @@ class PreprocessingPipeline:
         basic_features=True,
         calculate_indices=True,
         temporal_features=True,
+        interpolate_b4 = True,
         outlier_cleaner=False,
     ):
         self.path = path
         self.basic_features_flag = basic_features
         self.calculate_indices_flag = calculate_indices
         self.temporal_features_flag = temporal_features
+        self.interpolate_b4_flag = interpolate_b4
         self.outlier_cleaner_flag = outlier_cleaner
 
         self.data_loader = DataLoader()
         self.basic_feat = BasicFeatures()
         self.indices_calc = CalculateIndices()
         self.temporal_feat = TemporalFeatures()
+        self.interpolator = Interpolation()       
         self.outlier_cleaner = SITSOutlierCleaner()
 
         self.df = None
@@ -41,6 +45,9 @@ class PreprocessingPipeline:
 
         if self.temporal_features_flag:
             df = self.temporal_feat.run(df)
+
+        if self.interpolate_b4_flag:
+            df = self.interpolator.interpolate_b4(df)
 
         if self.outlier_cleaner_flag:
             self.outlier_cleaner.fit_transform(df, spectral_bands)
