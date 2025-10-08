@@ -35,7 +35,7 @@ class CorrelationAnalysis:
         return pd.concat([pos, neg], ignore_index=True)
 
     def plot_correlation_matrix(self):
-        corr = self.df.corr(numeric_only=True)
+        corr = self.df.corr(numeric_only=True, method="spearman")
         mask = np.triu(np.ones_like(corr, dtype=bool))
 
         fig, ax = plt.subplots(figsize=(10, 8))
