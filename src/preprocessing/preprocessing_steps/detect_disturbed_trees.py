@@ -89,19 +89,39 @@ class DetectDisturbedTrees:
         # print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
         return model
 
-
     def apply_model(self, model, df_std_slope):
         feature_cols = [c for c in df_std_slope.columns if c.endswith(("_std", "_slope"))]
         df_std_slope["is_disturbed_pred"] = model.predict(df_std_slope[feature_cols])
         return df_std_slope[["id", "is_disturbed_pred"]]
+    
+    def change_disturbed_labels(self, df_final):
+        """
+        Updates species names and is_disturbed flags based on predicted disturbances
+        """
+        disturbed_mask = df_final["is_disturbed_pred"] == True
+        df_final.loc[
+            disturbed_mask & ~df_final["species"].str.endswith("_disturbed"),
+            "species"
+        ] = df_final.loc[
+            disturbed_mask & ~df_final["species"].str.endswith("_disturbed"),
+            "species"
+        ].astype(str) + "_disturbed"
+
+        df_final.loc[
+            disturbed_mask & (df_final["is_disturbed"] == False),
+            "is_disturbed"
+        ] = True
+
+        df_final = df_final.drop(columns=["is_disturbed_pred"])
+        return df_final
     
     def run(self, df):
         full_df = self.prepare_data(df)
         train_df = self.get_balanced_train_data(full_df)
         model = self.train_model(train_df)
         self.model = model
-        
-        # Only apply the model to trees that are supposedly healthy
+
+        # Apply model to healthy trees only
         df_healthy = full_df[~full_df["is_disturbed"]].copy()
         df_pred = self.apply_model(model, df_healthy)
 
@@ -110,5 +130,7 @@ class DetectDisturbedTrees:
 
         df_all_pred = pd.concat([df_pred, df_disturbed], ignore_index=True)
         df_final = df.merge(df_all_pred[["id", "is_disturbed_pred"]], on="id", how="left")
+
+        df_final = self.change_disturbed_labels(df_final)
 
         return df_final
