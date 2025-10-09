@@ -1,3 +1,5 @@
+import numpy as np
+from scipy.stats import norm
 import matplotlib.pyplot as plt
 from utils.constants import COLOR
 
@@ -37,10 +39,16 @@ class HistogramDataVisualization:
     def plot_id_distribution(self):
         rows_per_id = self.df.groupby("id").size()
         plt.figure(figsize=(self.figsize))
-        plt.hist(rows_per_id, bins=50, color=self.color)
+        counts, bins, patches = plt.hist(
+            rows_per_id, bins=50, color=self.color, alpha=0.6, density=True
+        )
+        mu = rows_per_id.mean()
+        sigma = rows_per_id.std()
+        x = np.linspace(rows_per_id.min(), rows_per_id.max(), 1000)
+        plt.plot(x, norm.pdf(x, mu, sigma), color="red", linewidth=2)
         plt.xlabel("Rows per ID")
-        plt.ylabel("Number of IDs")
-        plt.title("Distribution of Number of Rows per ID")
+        plt.ylabel("Density")
+        plt.title("Distribution of Number of Rows per ID with Normal Curve")
         plt.grid(True, linestyle="--", alpha=0.5)
         plt.tight_layout()
         plt.show()
