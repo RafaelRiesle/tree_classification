@@ -5,6 +5,7 @@ from preprocessing.preprocessing_steps.detect_disturbed_trees import DetectDistu
 from preprocessing.features.spectral_indices import CalculateIndices
 from preprocessing.features.basic_features import BasicFeatures
 from preprocessing.features.temporal_features import TemporalFeatures
+from preprocessing.preprocessing_steps.data_augmentation import DataAugmentation
 from preprocessing.preprocessing_pipeline.constants import spectral_bands
 
 
@@ -15,9 +16,10 @@ class PreprocessingPipeline:
         basic_features=True,
         calculate_indices=True,
         temporal_features=True,
-        interpolate_b4 = True,
+        interpolate_b4=True,
         outlier_cleaner=False,
-        detect_disturbed_trees=True
+        detect_disturbed_trees=True,
+        data_augmentation=True,
     ):
         self.path = path
         self.basic_features_flag = basic_features
@@ -26,20 +28,21 @@ class PreprocessingPipeline:
         self.interpolate_b4_flag = interpolate_b4
         self.outlier_cleaner_flag = outlier_cleaner
         self.detect_disturbed_trees_flag = detect_disturbed_trees
-        
+        self.data_augmentation_flag = data_augmentation
 
         self.data_loader = DataLoader()
         self.basic_feat = BasicFeatures()
         self.indices_calc = CalculateIndices()
         self.temporal_feat = TemporalFeatures()
-        self.interpolator = Interpolation()       
+        self.interpolator = Interpolation()
         self.outlier_cleaner = SITSOutlierCleaner()
         self.disturbed_detector = DetectDisturbedTrees()
+        self.data_augmenter = DataAugmentation()
 
         self.df = None
 
     def run(self):
-        
+
         df = self.data_loader.load_transform(self.path)
 
         if self.basic_features_flag:
@@ -61,6 +64,9 @@ class PreprocessingPipeline:
 
         if self.detect_disturbed_trees_flag:
             df = self.disturbed_detector.run(df)
+
+        if self.data_augmentation_flag:
+            df = self.data_augmenter.run(df)
 
         self.df = df
         return df
