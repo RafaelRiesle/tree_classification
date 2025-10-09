@@ -1,32 +1,24 @@
-# train_lstm_padded.py
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 import pytorch_lightning as pl
 from torch.utils.data import Dataset
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 
-# Eigene Module
-from lstm_utils.sequence_model import SequenceModel
 from lstm_utils.data_loader import DataLoader
 from lstm_utils.species_data_module import SpeciesDataModule
 from lstm_utils.species_predictor import SpeciesPredictor
 
-# =============================================================================
-# Initial Setup
-# =============================================================================
+from lstm_utils.support_function import df_to_sequences, weighted_accuracy, get_predictions
 pl.seed_everything(42)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
 
-# =============================================================================
-# Hilfsfunktionen
-# =============================================================================
+
 def df_to_sequences(df, feature_columns, label_column):
     """Teilt DataFrame in Sequenzen pro ID auf"""
     sequences = []
@@ -67,7 +59,9 @@ class PaddedSpeciesDataset(Dataset):
     def __init__(self, sequences, pad_value=0.0, max_len=None):
         self.sequences = sequences
         self.pad_value = pad_value
-        self.max_len = max_len if max_len is not None else max(len(X) for X, _ in sequences)
+        self.max_len = (
+            max_len if max_len is not None else max(len(X) for X, _ in sequences)
+        )
 
     def __len__(self):
         return len(self.sequences)
@@ -106,7 +100,9 @@ if __name__ == "__main__":
     # Feature- und Labeldefinition
     # -------------------------------------------------------------------------
     feature_columns = [
-        col for col in train_df.columns if col not in ["id", "time", "species", "disturbance_year"]
+        col
+        for col in train_df.columns
+        if col not in ["id", "time", "species", "disturbance_year"]
     ]
     label_column = "species"
 
@@ -122,17 +118,14 @@ if __name__ == "__main__":
     # Sequenzen erstellen
     # -------------------------------------------------------------------------
     train_sequences = df_to_sequences(train_df, feature_columns, label_column)
-    val_sequences   = df_to_sequences(val_df, feature_columns, label_column)
-    test_sequences  = df_to_sequences(test_df, feature_columns, label_column)
-
-
+    val_sequences = df_to_sequences(val_df, feature_columns, label_column)
+    test_sequences = df_to_sequences(test_df, feature_columns, label_column)
 
     # Padding vorbereiten
     max_len_train = max(len(X) for X, _ in train_sequences)
     train_dataset = PaddedSpeciesDataset(train_sequences, max_len=max_len_train)
     val_dataset = PaddedSpeciesDataset(val_sequences, max_len=max_len_train)
     test_dataset = PaddedSpeciesDataset(test_sequences, max_len=max_len_train)
-
 
     # Sequenzlängen und Padding anzeigen (nur erste 10 als Beispiel)
     print("Train-Seq (original Länge / padding):")
@@ -153,19 +146,20 @@ if __name__ == "__main__":
         padding = max_len_train - seq_len
         print(f"Seq {i}: original {seq_len}, padding {padding}")
 
-
     # -------------------------------------------------------------------------
     # Trainingsparameter
     # -------------------------------------------------------------------------
     n_features = len(feature_columns)
     batch_size = 50
     lr = 1e-3
-    max_epochs = 20
+    max_epochs = 2
 
     # -------------------------------------------------------------------------
     # DataModule & Model
     # -------------------------------------------------------------------------
-    data_module = SpeciesDataModule(train_sequences, val_sequences, test_sequences, batch_size=batch_size)
+    data_module = SpeciesDataModule(
+        train_sequences, val_sequences, test_sequences, batch_size=batch_size
+    )
     model = SpeciesPredictor(n_features=n_features, n_classes=n_classes, lr=lr)
 
     # -------------------------------------------------------------------------
@@ -184,9 +178,13 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------------
     # Evaluation
     # -------------------------------------------------------------------------
-    train_labels, train_preds = get_predictions(model, data_module.train_dataloader(), device)
+    train_labels, train_preds = get_predictions(
+        model, data_module.train_dataloader(), device
+    )
     val_labels, val_preds = get_predictions(model, data_module.val_dataloader(), device)
-    test_labels, test_preds = get_predictions(model, data_module.test_dataloader(), device)
+    test_labels, test_preds = get_predictions(
+        model, data_module.test_dataloader(), device
+    )
 
     train_acc = weighted_accuracy(train_labels, train_preds)
     val_acc = weighted_accuracy(val_labels, val_preds)

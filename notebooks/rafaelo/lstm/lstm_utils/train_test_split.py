@@ -80,6 +80,7 @@ class DatasetSplitLoader:
         print("New splits created and saved")
         return splits
 
+
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "raw_trainset.csv"
 OUTPUT_DIR = PROJECT_ROOT / "data" / "baseline_training"

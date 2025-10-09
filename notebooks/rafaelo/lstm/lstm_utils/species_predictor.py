@@ -5,6 +5,7 @@ import torch.optim as optim
 from torchmetrics import Accuracy
 from lstm_utils.sequence_model import SequenceModel
 
+
 class SpeciesPredictor(pl.LightningModule):
     def __init__(self, n_features, n_classes, lr=1e-4):
         super().__init__()
