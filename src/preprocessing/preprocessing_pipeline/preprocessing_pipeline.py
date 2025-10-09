@@ -7,6 +7,7 @@ from preprocessing.features.basic_features import BasicFeatures
 from preprocessing.features.temporal_features import TemporalFeatures
 from preprocessing.preprocessing_steps.data_augmentation import DataAugmentation
 from preprocessing.preprocessing_pipeline.constants import spectral_bands
+from preprocessing.preprocessing_steps.adjust_labels import AdjustLabels
 
 
 class PreprocessingPipeline:
@@ -20,6 +21,7 @@ class PreprocessingPipeline:
         outlier_cleaner=False,
         detect_disturbed_trees=True,
         data_augmentation=True,
+        specify_disturbed_labels =True
     ):
         self.path = path
         self.basic_features_flag = basic_features
@@ -29,6 +31,7 @@ class PreprocessingPipeline:
         self.outlier_cleaner_flag = outlier_cleaner
         self.detect_disturbed_trees_flag = detect_disturbed_trees
         self.data_augmentation_flag = data_augmentation
+        self.specify_disturbed_labels_flag = specify_disturbed_labels
 
         self.data_loader = DataLoader()
         self.basic_feat = BasicFeatures()
@@ -38,6 +41,7 @@ class PreprocessingPipeline:
         self.outlier_cleaner = SITSOutlierCleaner()
         self.disturbed_detector = DetectDisturbedTrees()
         self.data_augmenter = DataAugmentation()
+        self.label_adjuster = AdjustLabels(bands_and_indices=spectral_bands)
 
         self.df = None
 
@@ -67,6 +71,9 @@ class PreprocessingPipeline:
 
         if self.data_augmentation_flag:
             df = self.data_augmenter.run(df)
+        
+        if self.specify_disturbed_labels_flag:
+            df = self.label_adjuster.run(df)
 
         self.df = df
         return df
