@@ -1,0 +1,57 @@
+import pytorch_lightning as pl
+from torch.utils.data import Dataset, DataLoader
+import torch
+import pandas as pd
+import numpy as np
+
+
+class PaddedSpeciesDataset(Dataset):
+    def __init__(self, sequences, pad_value=0.0, max_len=None):
+        self.sequences = sequences
+        self.pad_value = pad_value
+        self.max_len = (
+            max_len if max_len is not None else max(len(X) for X, _ in sequences)
+        )
+
+    def __len__(self):
+        return len(self.sequences)
+
+    def __getitem__(self, idx):
+        X, y = self.sequences[idx]
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+        seq_len, n_features = X.shape
+        padded_X = np.full((self.max_len, n_features), self.pad_value, dtype=np.float32)
+        padded_X[:seq_len, :] = X
+        return {
+            "sequence": torch.tensor(padded_X, dtype=torch.float32),
+            "label": torch.tensor(y, dtype=torch.long),
+            "length": seq_len,
+        }
+
+class SpeciesDataModule(pl.LightningDataModule):
+    def __init__(self, train_seqs, val_seqs, test_seqs, batch_size=32):
+        super().__init__()
+        self.train_seqs = train_seqs
+        self.val_seqs = val_seqs
+        self.test_seqs = test_seqs
+        self.batch_size = batch_size
+        self.max_len = max(len(X) for X, _ in train_seqs)
+
+        # Datasets direkt beim Initialisieren erstellen
+        self.train_dataset = PaddedSpeciesDataset(self.train_seqs, max_len=self.max_len)
+        self.val_dataset = PaddedSpeciesDataset(self.val_seqs, max_len=self.max_len)
+        self.test_dataset = PaddedSpeciesDataset(self.test_seqs, max_len=self.max_len)
+
+    # setup() kann optional bleiben
+    def setup(self, stage=None):
+        pass  # datasets sind schon erstellt
+
+    def train_dataloader(self):
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
+
+    def val_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size)
+
+    def test_dataloader(self):
+        return DataLoader(self.test_dataset, batch_size=self.batch_size)
