@@ -10,18 +10,18 @@ class BasePipeline:
         self.fitted = False
         self.categorical_cols = []
 
-    def date_feature_extraction(self, df):
-        df = df.copy()
-        df["time"] = pd.to_datetime(df["time"])
-        df["month_num"] = df["time"].dt.month
-        df["year"] = df["time"].dt.year
+    # def date_feature_extraction(self, df):
+    #     df = df.copy()
+    #     df["time"] = pd.to_datetime(df["time"])
+    #     df["month_num"] = df["time"].dt.month
+    #     df["year"] = df["time"].dt.year
 
-        seasons = ["Winter", "Spring", "Summer", "Autumn"]
-        df["season"] = df["month_num"].apply(lambda m: seasons[((m % 12) // 3)])
+    #     seasons = ["Winter", "Spring", "Summer", "Autumn"]
+    #     df["season"] = df["month_num"].apply(lambda m: seasons[((m % 12) // 3)])
 
-        # Calculate difference in days per 'id'
-        df["date_diff"] = df.groupby("id")["time"].diff().dt.days.fillna(0)
-        return df
+    #     # Calculate difference in days per 'id'
+    #     df["date_diff"] = df.groupby("id")["time"].diff().dt.days.fillna(0)
+    #     return df
 
     def drop_columns(self, df):
         # Drop columns that are not needed

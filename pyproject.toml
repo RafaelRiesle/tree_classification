@@ -16,7 +16,8 @@ dependencies = [
   "seaborn",
   "statsmodels",
   "scikit-learn",
-  "xgboost"
+  "xgboost", 
+  "tsaug"
 ]
 
 [tool.ruff.lint]
