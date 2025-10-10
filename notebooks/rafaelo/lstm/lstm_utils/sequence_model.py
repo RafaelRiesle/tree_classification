@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class SequenceModel(nn.Module):
-    def __init__(self, n_features, n_classes, n_hidden=256, n_layers=2):
+    def __init__(self, n_features, n_classes, n_hidden=256, n_layers=1):
         super().__init__()
 
         self.lstm = nn.LSTM(

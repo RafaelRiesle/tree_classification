@@ -14,7 +14,7 @@ if __name__ == "__main__":
     n_features = len(data["feature_columns"])
     batch_size = 32
     lr = 1e-3
-    max_epochs = 20
+    max_epochs = 2
 
     data_module = SpeciesDataModule(
         data["train_sequences"],
