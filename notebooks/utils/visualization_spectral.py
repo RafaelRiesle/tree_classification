@@ -50,7 +50,7 @@ class SpectralBandPlotter:
         n_years = len(years)
 
         _, axes = plt.subplots(
-            nrows=n_years, ncols=1, figsize=(24, 6 * n_years), sharex=True
+            nrows=n_years, ncols=1, figsize=(10, 6 * n_years), sharex=True
         )
         if n_years == 1:
             axes = [axes]
@@ -80,7 +80,7 @@ class SpectralBandPlotter:
         df_melted = self._melt_df(df_sampled)
         df_melted.sort_values(["band", "species", "year"], inplace=True)
 
-        plt.figure(figsize=(24, 8))
+        plt.figure(figsize=(10, 6))
         sns.boxplot(
             data=df_melted, x="band", y="value", hue="species", showfliers=showfliers
         )

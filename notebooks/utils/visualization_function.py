@@ -1,6 +1,5 @@
 import math
 import pandas as pd
-import plotly.express as px
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
@@ -55,47 +54,53 @@ def plot_top_correlations(df: pd.DataFrame):
     plt.show()
 
 
-def plot_band_differences(df, lag=26, n_cols=2, date_col="time"):
-    band_columns = spectral_bands
+def plot_band_differences(df, shift_years=1, date_col="time", n_cols=2):
     df = df.copy()
 
     if date_col not in df.columns and not isinstance(df.index, pd.DatetimeIndex):
         raise ValueError(f"{date_col} not found and index is not datetime.")
 
-    # Ensure datetime index
     if date_col in df.columns:
         df[date_col] = pd.to_datetime(df[date_col])
         df.set_index(date_col, inplace=True)
 
-    df_shifted = df[band_columns].shift(periods=lag)
-    df_diff = df[band_columns] - df_shifted
+    df_shifted = df[spectral_bands].copy()
+    df_shifted.index = df_shifted.index + pd.DateOffset(years=shift_years)
 
-    n_bands = len(band_columns)
+    n_bands = len(spectral_bands)
     n_rows = math.ceil(n_bands / n_cols)
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 3 * n_rows), sharex=True)
     axes = axes.flatten()
 
-    for i, col in enumerate(band_columns):
-        axes[i].plot(df.index, df[col], label="Original", marker=".", color=COLOR)
-        axes[i].plot(
-            df.index,
-            df_shifted[col],
-            label=f"Shifted (t-{lag})",
+    for i, band in enumerate(spectral_bands):
+        ax = axes[i]
+        ax.plot(df.index, df[band], label="Original", marker=".", color="blue")
+        ax.plot(
+            df_shifted.index,
+            df_shifted[band],
+            label=f"Shifted (+{shift_years}y)",
+            marker=".",
+            linestyle="--",
+            color="red",
+        )
+
+        df_common = df[band].reindex(df_shifted.index, method="nearest")
+        diff = df_common - df_shifted[band]
+        ax.plot(
+            df_shifted.index,
+            diff,
+            label="Diff (Original - Shifted)",
             linestyle=":",
-            color="orange",
-        )
-        axes[i].plot(
-            df.index, df_diff[col], label="Diff (YoY)", linestyle="--", color="green"
+            color="green",
         )
 
-        axes[i].set_title(f"Band: {col}")
-        axes[i].set_ylabel("Reflectance / Index Value")
-        axes[i].legend()
-        axes[i].grid()
+        ax.set_title(f"Band: {band}")
+        ax.set_ylabel("Reflectance / Index Value")
+        ax.legend()
+        ax.grid()
 
-        # Format x-axis as years
-        axes[i].xaxis.set_major_locator(mdates.YearLocator())
-        axes[i].xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+        ax.xaxis.set_major_locator(mdates.YearLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])

@@ -36,7 +36,7 @@ def plot_outlier_detection_grid(df, bands, ncols=2):
 
 
 def plot_with_outliers_subplot(df, spectral_bands):
-    _, axes = plt.subplots(2, 1, figsize=(14, 8), sharex=True)
+    _, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
 
     # --- Original Plot ---
     ax = axes[0]
