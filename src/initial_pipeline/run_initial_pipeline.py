@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from general_utils.constants import spectral_bands
+from general_utils.utility_functions import load_data
 from initial_pipeline.initial_pipeline_utils.data_loader import DataLoader
 from initial_pipeline.initial_pipeline_utils.train_test_split import DatasetSplitLoader
 from initial_pipeline.initial_pipeline_utils.sits_outlier_cleaner import (
@@ -12,12 +13,12 @@ DATA_PATH = Path("../../data/raw/raw_trainset.csv")
 OUTPUT_PATH = Path("../../data/raw/splits")
 PROCESSED_OUTPUT_PATH = Path("../../data/processed")
 
-
-def load_data(path: Path) -> pd.DataFrame:
-    dataloader = DataLoader()
-    df = dataloader.load_transform(path)
-    print("Data import and transformation finished.")
-    return df
+# TODO
+# def load_data(path: Path) -> pd.DataFrame:
+#     dataloader = DataLoader()
+#     df = dataloader.load_transform(path)
+#     print("Data import and transformation finished.")
+#     return df
 
 
 def create_splits(df: pd.DataFrame, output_path: Path, sample_size: int = 200) -> dict:

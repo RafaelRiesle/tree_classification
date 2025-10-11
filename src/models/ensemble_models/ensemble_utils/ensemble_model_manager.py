@@ -16,18 +16,18 @@ from sklearn.metrics import (
 )
 
 
-class BaselineModelManager:
+class EnsembleModelManager:
     def __init__(self, results_dir=None):
         if results_dir is None:
             project_root = Path(__file__).resolve().parents[4]
             results_dir = (
-                project_root / "data" / "baseline_training" / "baseline_results"
+                project_root / "data" / "ensemble_training" / "ensemble_results"
             )
 
         self.results_dir = Path(results_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
-        self.baseline_models = self.aggregate_results()
+        self.models = self.aggregate_results()
 
     # ---------------- Train & Predict ----------------
     @staticmethod
@@ -66,7 +66,7 @@ class BaselineModelManager:
 
     # ---------------- Prepare Baseline Dict ----------------
     @staticmethod
-    def prepare_baseline_model_dict(model_class, hyperparams, metrics, feature_names):
+    def prepare_model_dict(model_class, hyperparams, metrics, feature_names):
         return {
             "run_id": None,
             "timestamp": datetime.now().isoformat(),
@@ -77,7 +77,7 @@ class BaselineModelManager:
         }
 
     # ---------------- Save Baseline Model ----------------
-    def save_to_json(self, baseline_model):
+    def save_to_json(self, model):
         # Git-User auslesen
         try:
             git_user = subprocess.check_output(
@@ -93,14 +93,14 @@ class BaselineModelManager:
         # Timestamp und Datei
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         run_file = user_dir / f"run_{timestamp}.json"
-        baseline_model["run_id"] = timestamp
+        model["run_id"] = timestamp
 
         # JSON speichern
         with open(run_file, "w") as f:
-            json.dump(baseline_model, f, indent=4)
+            json.dump(model, f, indent=4)
 
         print(f"Baseline Model saved to {run_file}")
-        self.baseline_models.append(baseline_model)
+        self.models.append(model)
 
     # ---------------- Aggregate all results ----------------
     def aggregate_results(self):
@@ -128,16 +128,16 @@ class BaselineModelManager:
             feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
         )
 
-        baseline_model = self.prepare_baseline_model_dict(
+        model = self.prepare_model_dict(
             model_class, hyperparams, metrics, feature_names
         )
-        self.save_to_json(baseline_model)
+        self.save_to_json(model)
         return model, metrics
 
-    # ---------------- Load baseline models as DataFrame ----------------
-    def load_baseline_models(self):
+    # ---------------- Load models as DataFrame ----------------
+    def load_models(self):
         records = []
-        for bm in self.baseline_models:
+        for bm in self.models:
             metrics = bm.get("metrics", {})
             records.append(
                 {
@@ -154,17 +154,16 @@ class BaselineModelManager:
             )
         return pd.DataFrame(records)
 
-
-    # ---------------- Retrieve a specific baseline model ----------------
-    def get_baseline_model_by_id(self, run_id):
-        for bm in self.baseline_models:
+    # ---------------- Retrieve a specific model ----------------
+    def get_model_by_id(self, run_id):
+        for bm in self.models:
             if bm["run_id"] == run_id:
                 return bm
         raise ValueError(f"Baseline model with run_id={run_id} not found.")
 
     # ---------------- Plot confusion matrix ----------------
     def plot_confusion_matrix(self, run_id):
-        bm = self.get_baseline_model_by_id(run_id)
+        bm = self.get_model_by_id(run_id)
         cm = bm["metrics"]["confusion_matrix"]
 
         plt.figure(figsize=(8, 6))
@@ -176,7 +175,7 @@ class BaselineModelManager:
 
     # ---------------- Print classification report ----------------
     def print_classification_report(self, run_id):
-        bm = self.get_baseline_model_by_id(run_id)
+        bm = self.get_model_by_id(run_id)
         report = bm["metrics"]["classification_report"]
 
         print(f"\nClassification Report - {bm['model']} (run_id={run_id}):\n")
@@ -186,7 +185,7 @@ class BaselineModelManager:
 
     # ---------------- Plot feature importances ----------------
     def plot_feature_importances(self, run_id, top_n=20):
-        bm = self.get_baseline_model_by_id(run_id)
+        bm = self.get_model_by_id(run_id)
         feat_imp = bm["metrics"].get("feature_importances")
         if feat_imp is None:
             print(f"No feature importances for run_id={run_id}")
@@ -206,9 +205,9 @@ class BaselineModelManager:
     # ---------------- Plot performance distribution  ----------------
     def plot_performance_distribution(self, column):
         """
-        Plot accuracy of all baseline models over time, grouped by model type.
+        Plot accuracy of all models over time, grouped by model type.
         """
-        df_results = self.load_baseline_models()
+        df_results = self.load_models()
         df_results["timestamp"] = pd.to_datetime(df_results["timestamp"])
 
         plt.figure(figsize=(10, 6))
