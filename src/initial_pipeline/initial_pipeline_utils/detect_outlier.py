@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-from utils.constants import spectral_bands
+from general_utils.constants import spectral_bands
 from utils.data_loader import DataLoader
 from utils.sits_outlier_cleaner import SITSOutlierCleaner
 
-def main():
+def run_detect_outlier():
     INPUT_PATH = "data/baseline_training/trainset.csv"
     OUTPUT_PATH = "data/processed/cleaned_trainset.csv"
     dataloader = DataLoader()
@@ -24,6 +24,3 @@ def main():
     cleaned_df.to_csv(OUTPUT_PATH, index=False)
     print(f"Cleaned dataset saved to: {OUTPUT_PATH}")
 
-
-if __name__ == "__main__":
-    main()
