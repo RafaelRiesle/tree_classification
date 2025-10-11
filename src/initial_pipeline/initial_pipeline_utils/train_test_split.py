@@ -46,7 +46,6 @@ class DatasetSplitLoader:
         n_train = round(n_total * train_ratio)
         n_test = round(n_total * test_ratio)
 
-
         train_ids = set(hashed_ids[:n_train])
         test_ids = set(hashed_ids[n_train : n_train + n_test])
         val_ids = set(hashed_ids[n_train + n_test :])
