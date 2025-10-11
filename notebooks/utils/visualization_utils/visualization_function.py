@@ -125,7 +125,7 @@ def plot_autocorrelation_bands(df, bands, lags=26):
     df_correlation = df.set_index("time")
 
     n_bands = len(bands)
-    fig, axes = plt.subplots(n_bands, 2, figsize=(14, 2 * n_bands))
+    fig, axes = plt.subplots(n_bands, 2, figsize=(10, 2 * n_bands))
 
     if n_bands == 1:
         axes = [axes]
@@ -142,4 +142,34 @@ def plot_autocorrelation_bands(df, bands, lags=26):
         axes[i][1].set_title(f"Partial Autocorrelation (PACF {band})")
 
     plt.tight_layout()
+    plt.show()
+
+
+
+def plot_timeseries(
+    df, col1, col2, id=None, agg=False, year_filter=None, figsize=(10, 6)
+):
+    df_plot = df.copy()
+    if year_filter is not None:
+        df_plot = df_plot[df_plot["time"].dt.year >= year_filter]
+
+    plt.figure(figsize=figsize)
+
+    if id is not None:
+        df_sub = df_plot[df_plot["id"] == id]
+        plt.plot(df_sub["time"], df_sub[col1], label=col1)
+        plt.plot(df_sub["time"], df_sub[col2], label=col2)
+        plt.title(f"{col1}, {col2} Timeseries for ID {id}")
+    elif agg:
+        agg_df = df_plot.groupby("time")[[col1, col2]].mean()
+        plt.plot(agg_df.index, agg_df[col1], label=f"Mean {col1}")
+        plt.plot(agg_df.index, agg_df[col2], label=f"Mean {col2}")
+        plt.title(f"Time Series of Mean {col1} and {col2}")
+    else:
+        raise ValueError("Entweder 'id' angeben oder 'agg=True' setzen.")
+
+    plt.xlabel("Time")
+    plt.ylabel("Value")
+    plt.legend()
+    plt.grid(True)
     plt.show()

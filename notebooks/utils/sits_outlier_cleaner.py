@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
 from scipy.stats import zscore
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
@@ -19,7 +21,7 @@ class SITSOutlierCleaner:
             model = IsolationForest(
                 contamination=self.contamination,
                 random_state=self.random_state,
-                n_estimators=200,
+                n_estimators=50,
             )
             preds = model.fit_predict(data_scaled)
             df_id[f"is_outlier_{band}"] = preds == -1
@@ -34,17 +36,20 @@ class SITSOutlierCleaner:
             )
         return df_id
 
+
+
     def fit_transform(self, df, band_columns):
         self.band_columns = band_columns
-        self.cleaned_df = (
-            df.groupby("id", group_keys=False)
-            .apply(self.detect_outliers_isolation_forest)
-            .pipe(
-                lambda d: d.groupby("id", group_keys=False).apply(
-                    self.interpolate_outliers
-                )
-            )
-        )
+        self.cleaned_df = []
+
+        unique_ids = df["id"].unique()
+        for uid in tqdm(unique_ids, desc="Processing IDs"):
+            df_id = df[df["id"] == uid]
+            df_id = self.detect_outliers_isolation_forest(df_id)
+            df_id = self.interpolate_outliers(df_id)
+            self.cleaned_df.append(df_id)
+
+        self.cleaned_df = pd.concat(self.cleaned_df, ignore_index=True)
         return self.cleaned_df
 
     def add_any_outlier_flag(self):

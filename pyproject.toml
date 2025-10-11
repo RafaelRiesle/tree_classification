@@ -17,7 +17,11 @@ dependencies = [
   "statsmodels",
   "scikit-learn",
   "xgboost", 
-  "tsaug"
+  "tsaug",
+  "torch==2.2.2",
+  "tensorboard==2.16.2",
+  "tensorflow==2.16.2"
+
 ]
 
 [tool.ruff.lint]
