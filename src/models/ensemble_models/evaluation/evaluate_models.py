@@ -9,13 +9,13 @@ from models.ensemble_models.evaluation.evaluation_utils import (
 from tabulate import tabulate
 
 
+# TODO validerungsdatensatz ebenfalls mit einbinden um modell auf besten modell anzuwenden
 def run_evaluation():
     """
     Finds and evaluates the best model based on a chosen metric.
     """
     print("\nStarting Ensemble Model Evaluation...\n")
 
-    # Load ensemble manager and find the best model
     ensemble = EnsembleModelManager()
     best_run_id, best_model, df_sorted = get_best_model(ensemble, metric="accuracy")
 

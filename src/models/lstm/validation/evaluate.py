@@ -7,6 +7,11 @@ from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
 from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
 
 
+DATA_DIR = Path("../../data/processed")
+TRAIN_PATH = DATA_DIR / "train.csv"
+TEST_PATH = DATA_DIR / "test.csv"
+VAL_PATH = DATA_DIR / "val.csv"
+
 def get_checkpoint_path(filename="species_model.ckpt") -> Path:
     return Path(__file__).parent.parent / "experiments" / "trained_model" / filename
 
@@ -34,7 +39,7 @@ def plot_metrics(metrics: dict):
 
 
 def evaluate_model(checkpoint_path: str, batch_size: int = 50):
-    data = prepare_data()
+    data = prepare_data(train_path=TRAIN_PATH, test_path=TEST_PATH, val_path=VAL_PATH)
 
     data_module = SpeciesDataModule(
         train_seqs=data["train_sequences"],
@@ -58,10 +63,10 @@ def evaluate_model(checkpoint_path: str, batch_size: int = 50):
     plot_metrics(metrics)
 
 
-def run_evaluation(batch_size=50):
+def run_lstm_evaluation(batch_size=50):
     checkpoint = get_checkpoint_path()
     evaluate_model(checkpoint_path=str(checkpoint), batch_size=batch_size)
 
 
 if __name__ == "__main__":
-    run_evaluation(batch_size=50)
+    run_lstm_evaluation(batch_size=50)

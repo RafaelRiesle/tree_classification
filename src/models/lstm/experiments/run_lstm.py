@@ -4,6 +4,11 @@ from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
 from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
 from models.lstm.pipeline.pipeline import prepare_data
 
+DATA_DIR = Path("../../../../data/processed")
+TRAIN_PATH = DATA_DIR / "train.csv"
+TEST_PATH = DATA_DIR / "test.csv"
+VAL_PATH = DATA_DIR / "val.csv"
+
 
 def create_data_module(data, batch_size: int):
     return SpeciesDataModule(
@@ -38,8 +43,15 @@ def train_model(model, data_module, trainer, save_path: Path):
     trainer.save_checkpoint(save_path)
 
 
-def run_lstm(batch_size=16, lr=1e-3, max_epochs=2):
-    data = prepare_data()
+def run_lstm(
+    train_path=TRAIN_PATH,
+    test_path=TEST_PATH,
+    val_path=VAL_PATH,
+    batch_size=16,
+    lr=1e-3,
+    max_epochs=2,
+):
+    data = prepare_data(train_path=train_path, test_path=test_path, val_path=val_path)
     data_module = create_data_module(data, batch_size)
     model = create_model(data, lr)
     trainer = create_trainer(data["device"], max_epochs)

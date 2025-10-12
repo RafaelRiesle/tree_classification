@@ -3,11 +3,11 @@ from pathlib import Path
 from initial_pipeline.initial_pipeline_utils.data_loader import DataLoader
 
 
-def load_data(*paths: Path) -> list[pd.DataFrame]:
+def load_data(*paths: Path):
     """
     Loads and transforms data from one or more file paths.
 
-    Returns a list of DataFrames in the same order as the input paths.
+    Returns a DataFrame if one path is given, otherwise a list of DataFrames.
     """
     dataloader = DataLoader()
     dataframes = []
@@ -17,4 +17,6 @@ def load_data(*paths: Path) -> list[pd.DataFrame]:
         print(f"Data import and transformation finished for: {path}")
         dataframes.append(df)
 
+    if len(dataframes) == 1:
+        return dataframes[0]
     return dataframes

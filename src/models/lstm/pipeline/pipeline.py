@@ -23,7 +23,9 @@ def load_datasets(
     test_path: Path = TEST_PATH,
     val_path: Path = VAL_PATH,
 ):
-    train_df, test_df, val_df = load_data(train_path, test_path, val_path)
+    train_df, test_df, val_df = load_data(
+        train_path, test_path, val_path
+    )
     return train_df, test_df, val_df
 
 
@@ -84,7 +86,9 @@ def prepare_data(
     test_path: Path = TEST_PATH,
     val_path: Path = VAL_PATH,
 ):
-    train_df, val_df, test_df = load_datasets(train_path, test_path, val_path)
+    train_df, test_df, val_df  = load_datasets(
+        train_path=train_path, test_path=test_path, val_path=val_path
+    )
     feature_columns = [
         c
         for c in train_df.columns
@@ -117,6 +121,5 @@ def prepare_data(
 
 
 if __name__ == "__main__":
-    data = prepare_data()
+    data = prepare_data(train_path=TRAIN_PATH, test_path=TEST_PATH, val_path=VAL_PATH)
     print("Data prepared")
-

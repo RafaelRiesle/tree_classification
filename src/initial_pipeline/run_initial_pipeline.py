@@ -2,7 +2,6 @@ import pandas as pd
 from pathlib import Path
 from general_utils.constants import spectral_bands
 from general_utils.utility_functions import load_data
-from initial_pipeline.initial_pipeline_utils.data_loader import DataLoader
 from initial_pipeline.initial_pipeline_utils.train_test_split import DatasetSplitLoader
 from initial_pipeline.initial_pipeline_utils.sits_outlier_cleaner import (
     SITSOutlierCleaner,
@@ -13,15 +12,9 @@ DATA_PATH = Path("../../data/raw/raw_trainset.csv")
 OUTPUT_PATH = Path("../../data/raw/splits")
 PROCESSED_OUTPUT_PATH = Path("../../data/processed")
 
-# TODO
-# def load_data(path: Path) -> pd.DataFrame:
-#     dataloader = DataLoader()
-#     df = dataloader.load_transform(path)
-#     print("Data import and transformation finished.")
-#     return df
 
-
-def create_splits(df: pd.DataFrame, output_path: Path, sample_size: int = 200) -> dict:
+# TODO Entfernen von sample size
+def create_splits(df: pd.DataFrame, output_path: Path, sample_size: int = 300) -> dict:
     dataset_splitter = DatasetSplitLoader(
         df.sample(sample_size), output_path=output_path
     )
@@ -30,8 +23,10 @@ def create_splits(df: pd.DataFrame, output_path: Path, sample_size: int = 200) -
     )
 
 
-def run_outlier_detection(splits, contamination=0.05):
-    PROCESSED_OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
+def run_outlier_detection(
+    splits, processed_output=PROCESSED_OUTPUT_PATH, contamination=0.05
+):
+    processed_output.mkdir(parents=True, exist_ok=True)
 
     cleaner = SITSOutlierCleaner(contamination=contamination)
     processed_files = {}
@@ -40,7 +35,7 @@ def run_outlier_detection(splits, contamination=0.05):
         print(f"Cleaning split: {name}")
         cleaned_df = cleaner.fit_transform(df_split, spectral_bands)
 
-        output_path = PROCESSED_OUTPUT_PATH / f"{name}.csv"
+        output_path = processed_output / f"{name}.csv"
         cleaned_df.to_csv(output_path, index=False)
 
         processed_files[name] = output_path
@@ -48,11 +43,18 @@ def run_outlier_detection(splits, contamination=0.05):
     print("All splits successfully cleaned and saved.")
 
 
-def run_initial_pipeline():
-    df = load_data(DATA_PATH)
-    splits = create_splits(df, OUTPUT_PATH)
-    run_outlier_detection(splits, contamination=0.05)
+def run_initial_pipeline(
+    data_path=DATA_PATH,
+    output_path=OUTPUT_PATH,
+    processed_output=PROCESSED_OUTPUT_PATH,
+    contamination=0.05,
+):
+    df = load_data(data_path)
+    splits = create_splits(df, output_path)
+    run_outlier_detection(
+        splits, processed_output=processed_output, contamination=contamination
+    )
 
 
 if __name__ == "__main__":
-    run_initial_pipeline()
+    run_initial_pipeline(contamination=0.05)
