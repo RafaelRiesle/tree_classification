@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchmetrics import Accuracy
-from lstm_utils.sequence_model import SequenceModel
+from models.lstm.lstm_utils.sequence_model import SequenceModel
 
 
 class SpeciesPredictor(pl.LightningModule):

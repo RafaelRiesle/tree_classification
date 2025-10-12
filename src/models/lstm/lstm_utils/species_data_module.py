@@ -30,22 +30,22 @@ class PaddedSpeciesDataset(Dataset):
         }
 
 class SpeciesDataModule(pl.LightningDataModule):
-    def __init__(self, train_seqs, val_seqs, test_seqs, batch_size=32):
+    def __init__(self, train_seqs, test_seqs, val_seqs, batch_size=32):
         super().__init__()
         self.train_seqs = train_seqs
-        self.val_seqs = val_seqs
         self.test_seqs = test_seqs
+        self.val_seqs = val_seqs
         self.batch_size = batch_size
         self.max_len = max(len(X) for X, _ in train_seqs)
 
         # Datasets direkt beim Initialisieren erstellen
         self.train_dataset = PaddedSpeciesDataset(self.train_seqs, max_len=self.max_len)
-        self.val_dataset = PaddedSpeciesDataset(self.val_seqs, max_len=self.max_len)
         self.test_dataset = PaddedSpeciesDataset(self.test_seqs, max_len=self.max_len)
+        self.val_dataset = PaddedSpeciesDataset(self.val_seqs, max_len=self.max_len)
 
-    # setup() kann optional bleiben
+
     def setup(self, stage=None):
-        pass  # datasets sind schon erstellt
+        pass 
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
