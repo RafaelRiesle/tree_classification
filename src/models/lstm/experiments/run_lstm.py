@@ -1,8 +1,11 @@
 # train.py
 import pytorch_lightning as pl
-from lstm_utils.species_data_module import SpeciesDataModule
-from lstm_utils.species_predictor import SpeciesPredictor
-from pipeline.pipeline import prepare_data
+from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
+from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
+from models.lstm.pipeline.pipeline import prepare_data
+
+
+
 
 if __name__ == "__main__":
     data = prepare_data(
