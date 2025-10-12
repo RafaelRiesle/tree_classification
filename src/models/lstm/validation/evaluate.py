@@ -1,52 +1,29 @@
-# evaluate.py
-import matplotlib.pyplot as plt
 import torch
-import pytorch_lightning as pl
-from lstm_utils.support_function import weighted_accuracy, get_predictions
-from lstm_utils.species_predictor import SpeciesPredictor
-from lstm_utils.species_data_module import SpeciesDataModule
-from pipeline.pipeline import prepare_data
+from pathlib import Path
+import matplotlib.pyplot as plt
+from models.lstm.pipeline.pipeline import prepare_data
+from models.lstm.lstm_utils.support_function import weighted_accuracy, get_predictions
+from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
+from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
 
-if __name__ == "__main__":
-    data = prepare_data(
-        "../../../data/baseline_training/trainset.csv",
-        "../../../data/baseline_training/valset.csv",
-        "../../../data/baseline_training/testset.csv",
-    )
 
-    batch_size = 50
-    data_module = SpeciesDataModule(
-        data["train_sequences"],
-        data["val_sequences"],
-        data["test_sequences"],
-        batch_size=batch_size,
-    )
-    train_loader = data_module.train_dataloader()
-    # Modell laden
-    model = SpeciesPredictor.load_from_checkpoint("trained_model/species_model.ckpt")
-    device = data["device"]
+def get_checkpoint_path(filename="species_model.ckpt") -> Path:
+    return Path(__file__).parent.parent / "experiments" / "trained_model" / filename
+
+
+def load_model(checkpoint_path: str, device: torch.device):
+    model = SpeciesPredictor.load_from_checkpoint(checkpoint_path)
     model.to(device)
     model.eval()
+    return model
 
-    # Vorhersagen
-    train_labels, train_preds = get_predictions(
-        model, data_module.train_dataloader(), device
-    )
-    val_labels, val_preds = get_predictions(model, data_module.val_dataloader(), device)
-    test_labels, test_preds = get_predictions(
-        model, data_module.test_dataloader(), device
-    )
 
-    train_acc = weighted_accuracy(train_labels, train_preds)
-    val_acc = weighted_accuracy(val_labels, val_preds)
-    test_acc = weighted_accuracy(test_labels, test_preds)
+def evaluate_dataset(model, dataloader, device) -> float:
+    labels, preds = get_predictions(model, dataloader, device)
+    return weighted_accuracy(labels, preds)
 
-    print(f"Weighted Accuracy (Train): {train_acc:.4f}")
-    print(f"Weighted Accuracy (Validation): {val_acc:.4f}")
-    print(f"Weighted Accuracy (Test): {test_acc:.4f}")
 
-    # Plot
-    metrics = {"Train": train_acc, "Validation": val_acc, "Test": test_acc}
+def plot_metrics(metrics: dict):
     plt.figure(figsize=(6, 4))
     plt.bar(metrics.keys(), metrics.values())
     plt.ylim(0, 1)
@@ -54,3 +31,37 @@ if __name__ == "__main__":
     plt.title("Weighted Accuracy across Datasets")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.show()
+
+
+def evaluate_model(checkpoint_path: str, batch_size: int = 50):
+    data = prepare_data()
+
+    data_module = SpeciesDataModule(
+        train_seqs=data["train_sequences"],
+        test_seqs=data["test_sequences"],
+        val_seqs=data["val_sequences"],
+        batch_size=batch_size,
+    )
+
+    device = data["device"]
+    model = load_model(checkpoint_path, device)
+
+    metrics = {
+        "Train": evaluate_dataset(model, data_module.train_dataloader(), device),
+        "Test": evaluate_dataset(model, data_module.test_dataloader(), device),
+        "Validation": evaluate_dataset(model, data_module.val_dataloader(), device),
+    }
+
+    for k, v in metrics.items():
+        print(f"Weighted Accuracy ({k}): {v:.4f}")
+
+    plot_metrics(metrics)
+
+
+def run_evaluation(batch_size=50):
+    checkpoint = get_checkpoint_path()
+    evaluate_model(checkpoint_path=str(checkpoint), batch_size=batch_size)
+
+
+if __name__ == "__main__":
+    run_evaluation(batch_size=50)
