@@ -3,6 +3,9 @@ import numpy as np
 
 
 class CalculateIndices:
+    def __init__(self, on=True):
+        self.on = on
+
     @staticmethod
     def calculate_ndvi(df: pd.DataFrame):
         return (df["b8"] - df["b4"]) / (df["b8"] + df["b4"])
@@ -53,8 +56,11 @@ class CalculateIndices:
     def calculate_dvi(df: pd.DataFrame):
         return df["b8"] - df["b4"]
 
-    @staticmethod
-    def add_all_indices(df: pd.DataFrame):
+    
+    def run(self, df: pd.DataFrame):
+        if not self.on:
+            return df
+
         df = df.copy()
         df["ndvi"] = CalculateIndices.calculate_ndvi(df)
         df["gndvi"] = CalculateIndices.calculate_gndvi(df)

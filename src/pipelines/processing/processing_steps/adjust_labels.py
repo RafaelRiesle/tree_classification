@@ -1,13 +1,16 @@
 import pandas as pd
+from general_utils.constants import spectral_bands, indices
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
 from preprocessing.features.statistical_features import StatisticalFeatures
 
+bands_and_indices = spectral_bands + indices
 
 class AdjustLabels:
-    def __init__(self, bands_and_indices):
+    def __init__(self, on=True):
+        self.on = on
         self.bands_and_indices = bands_and_indices
         self.stats = StatisticalFeatures()
 
@@ -96,6 +99,8 @@ class AdjustLabels:
         """
         Runs both label adjustments on a dataframe.
         """
+        if not self.on:
+            return df
         df = self.get_soil_disturbed_col(df)
         df = self.specify_label_disturbed(df)
         return df

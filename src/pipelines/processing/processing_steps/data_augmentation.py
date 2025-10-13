@@ -9,7 +9,8 @@ warnings.filterwarnings("ignore")
 
 
 class DataAugmentation:
-    def __init__(self, scale=0.002, drift=0.01):
+    def __init__(self, on=True, scale=0.002, drift=0.01):
+        self.on = on
         self.scale = scale
         self.drift = drift
 
@@ -34,6 +35,9 @@ class DataAugmentation:
         pandas.DataFrame
             Augmented dataframe with balanced time-series lengths across species.
         """
+        if not self.on:
+            return df
+        
         df_trees_filter = df[df["species"] != "Norway_spruce"]
         spruce = df[df["species"] == "Norway_spruce"]
 

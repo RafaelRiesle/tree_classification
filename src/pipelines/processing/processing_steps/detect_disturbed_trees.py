@@ -5,12 +5,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
-from preprocessing.preprocessing_pipeline.constants import spectral_bands, indices
+from general_utils.constants import spectral_bands, indices
 
 
 class DetectDisturbedTrees:
     
-    def __init__(self, scale_pos_weight=4, random_state=42):
+    def __init__(self, on=True, scale_pos_weight=4, random_state=42):
+        self.on = on
         self.scale_pos_weight = scale_pos_weight
         self.random_state = random_state
         self.bands_and_indices = spectral_bands + indices
@@ -116,6 +117,9 @@ class DetectDisturbedTrees:
         return df_final
     
     def run(self, df):
+        if not self.on:
+            return df
+
         full_df = self.prepare_data(df)
         train_df = self.get_balanced_train_data(full_df)
         model = self.train_model(train_df)
