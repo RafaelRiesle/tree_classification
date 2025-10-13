@@ -20,7 +20,10 @@ dependencies = [
   "tsaug",
   "torch==2.2.2",
   "tensorboard==2.16.2",
-  "tensorflow==2.16.2"
+  "tensorflow==2.16.2",
+  "tqdm",
+  "tabulate",
+  "pytorch_lightning"
 ]
 
 

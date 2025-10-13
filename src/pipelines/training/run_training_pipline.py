@@ -22,7 +22,7 @@ from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
 from pipelines.processing.processing_pipeline import ProcessingPipeline
 
 
-# === PATH KONFIGURATION ===
+
 BASE_DIR = Path(__file__).resolve().parents[3]
 DATA_DIR = BASE_DIR / "data"
 
@@ -37,7 +37,6 @@ paths = {
 }
 
 
-# === SCHRITT 1: Preprocessing ===
 def run_preprocessing():
     print("[1] Running preprocessing...")
     run_preprocessing_pipeline(

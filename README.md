@@ -1,8 +1,6 @@
 Tree Classificatrion
 
-```
-![sample_trees](doc/assets/images/sample_trees.png)
-```
+![alt text](doc/assets/images/sample_trees.png)
 
 ## Installation
 
