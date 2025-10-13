@@ -12,11 +12,11 @@ from models.lstm.lstm_utils.support_function import df_to_sequences
 pl.seed_everything(42)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-DATA_DIR = Path("../../../../data/processed")
-TRAIN_PATH = DATA_DIR / "train.csv"
-TEST_PATH = DATA_DIR / "test.csv"
-VAL_PATH = DATA_DIR / "val.csv"
 
+BASE_DIR = Path(__file__).parents[4]
+TRAIN_PATH = BASE_DIR / "data/processed/trainset.csv"
+TEST_PATH = BASE_DIR / "data/processed/testset.csv"
+VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 
 def load_datasets(
     train_path: Path = TRAIN_PATH,

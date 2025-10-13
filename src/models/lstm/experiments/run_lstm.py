@@ -4,10 +4,10 @@ from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
 from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
 from models.lstm.pipeline.pipeline import prepare_data
 
-DATA_DIR = Path("../../../../data/processed")
-TRAIN_PATH = DATA_DIR / "train.csv"
-TEST_PATH = DATA_DIR / "test.csv"
-VAL_PATH = DATA_DIR / "val.csv"
+BASE_DIR = Path(__file__).parents[4]
+TRAIN_PATH = BASE_DIR / "data/processed/trainset.csv"
+TEST_PATH = BASE_DIR / "data/processed/testset.csv"
+VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 
 
 def create_data_module(data, batch_size: int):

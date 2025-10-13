@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from initial_pipeline.initial_pipeline_utils.data_loader import DataLoader
+from pipelines.preprocessing.preprocessing_pipeline_utils.data_loader import DataLoader
 
 
 def load_data(*paths: Path):

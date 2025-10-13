@@ -1,4 +1,5 @@
 import json
+import joblib
 from pathlib import Path
 import subprocess
 from datetime import datetime
@@ -118,9 +119,7 @@ class EnsembleModelManager:
     def run_training(
         self, model_class, hyperparams, X_train, y_train, X_test, y_test, feature_names
     ):
-        model, y_pred = self.train_and_predict(
-            model_class, hyperparams, X_train, y_train, X_test
-        )
+        model, y_pred = self.train_and_predict(model_class, hyperparams, X_train, y_train, X_test)
         metrics = self.compute_metrics(y_test, y_pred)
 
         feat_imp_df = self.extract_feature_importances(model, feature_names)
@@ -128,11 +127,54 @@ class EnsembleModelManager:
             feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
         )
 
-        model = self.prepare_model_dict(
-            model_class, hyperparams, metrics, feature_names
-        )
-        self.save_to_json(model)
-        return model, metrics
+        # Modell-Dict vorbereiten
+        model_dict = self.prepare_model_dict(model_class, hyperparams, metrics, feature_names)
+
+        # Trainiertes Modell speichern
+        model_file = self.results_dir / f"{model_dict['model']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
+        joblib.dump(model, model_file)
+        model_dict["model_file"] = str(model_file)
+
+        self.save_to_json(model_dict)
+        return model_dict, metrics
+
+    # ---------------- Load trained model by run_id ----------------
+    def load_model_by_id(self, run_id):
+        bm = self.get_model_by_id(run_id)
+        if "model_file" not in bm:
+            raise ValueError(f"No trained model saved for run_id={run_id}")
+        return joblib.load(bm["model_file"])
+
+    # ---------------- Get best model ----------------
+    def get_best_model(self, metric="accuracy", ascending=False):
+        df_results = self.load_models()
+        if metric not in df_results.columns:
+            raise ValueError(f"Metric '{metric}' not found. Available: {df_results.columns.tolist()}")
+
+        df_sorted = df_results.sort_values(metric, ascending=ascending).reset_index(drop=True)
+        best_row = df_sorted.iloc[0]
+        best_run_id = best_row["run_id"]
+        best_model = self.get_model_by_id(best_run_id)
+        best_model["trained_model"] = self.load_model_by_id(best_run_id)
+        return best_run_id, best_model, df_sorted
+
+    # ---------------- Save best model ----------------
+    def save_best_model(self, metric="accuracy", save_dir=None):
+        """
+        Save the best trained model according to a given metric.
+        """
+        if save_dir is None:
+            save_dir = self.results_dir / "best_model"
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        best_run_id, best_model_dict, _ = self.get_best_model(metric=metric)
+        trained_model = best_model_dict["trained_model"]
+
+        model_file = save_dir / f"best_model_{metric}_{best_run_id}.joblib"
+        joblib.dump(trained_model, model_file)
+
+        print(f"Best model saved: {model_file}")
+        return model_file
 
     # ---------------- Load models as DataFrame ----------------
     def load_models(self):
@@ -202,11 +244,8 @@ class EnsembleModelManager:
         plt.title(f"Top {top_n} Feature Importances - {bm['model']} (run_id={run_id})")
         plt.show()
 
-    # ---------------- Plot performance distribution  ----------------
+    # ---------------- Plot performance distribution ----------------
     def plot_performance_distribution(self, column):
-        """
-        Plot accuracy of all models over time, grouped by model type.
-        """
         df_results = self.load_models()
         df_results["timestamp"] = pd.to_datetime(df_results["timestamp"])
 
@@ -222,3 +261,4 @@ class EnsembleModelManager:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
+ 

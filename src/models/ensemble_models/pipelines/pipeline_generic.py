@@ -1,10 +1,11 @@
+import pandas as pd
 from tabulate import tabulate
+import matplotlib.pyplot as plt
 from models.ensemble_models.ensemble_utils.ensemble_model_manager import (
     EnsembleModelManager,
 )
 from models.ensemble_models.ensemble_utils.ensemble_pipeline import EnsemblePipeline
 from sklearn.model_selection import GridSearchCV
-import pandas as pd
 
 
 class GenericPipeline:
@@ -35,7 +36,6 @@ class GenericPipeline:
             )
         )
 
-        # Top feature importances
         feat_imp = metrics.get("feature_importances")
         if feat_imp:
             feat_imp_df = (
@@ -50,13 +50,16 @@ class GenericPipeline:
                 )
             )
 
-    def run(self, train_df, test_df, model_defs):
+    def run(self, train_df, test_df, model_defs, val_df=None):
         """
         Trains and evaluates all models defined in model_defs.
-        model_defs: List of tuples [(model_class, hyperparams_dict), ...]
+        Optionally evaluates a validation set.
         """
         X_train, y_train = self.pipeline.fit(train_df)
         X_test, y_test = self.pipeline.transform(test_df)
+        X_val, y_val = (None, None)
+        if val_df is not None:
+            X_val, y_val = self.pipeline.transform(val_df)
 
         feature_names = (
             X_train.columns
@@ -64,14 +67,15 @@ class GenericPipeline:
             else [f"f{i}" for i in range(X_train.shape[1])]
         )
 
+        results_summary = []
+
         for model_class, params in model_defs:
             model_name = model_class.__name__
             print(f"\n{'-' * 30}\nTraining {model_name}...\n{'-' * 30}")
 
-            # Grid search if any param is a list or tuple
             if any(isinstance(v, (list, tuple)) for v in params.values()):
                 grid = GridSearchCV(
-                    model_class(), params, cv=3, n_jobs=-1, scoring="accuracy"
+                    model_class(), params, cv=5, n_jobs=-1, scoring="accuracy"
                 )
                 grid.fit(X_train, y_train)
                 hyperparams = grid.best_params_
@@ -79,8 +83,17 @@ class GenericPipeline:
             else:
                 hyperparams = params
 
-            # Train, evaluate, and save model
-            model, metrics = self.ensemble.run_training(
+            model, train_metrics = self.ensemble.run_training(
+                model_class,
+                hyperparams,
+                X_train,
+                y_train,
+                X_train,
+                y_train,
+                feature_names,
+            )
+
+            _, test_metrics = self.ensemble.run_training(
                 model_class,
                 hyperparams,
                 X_train,
@@ -90,6 +103,35 @@ class GenericPipeline:
                 feature_names,
             )
 
-            self._print_metrics(model_name, metrics)
+            _, val_metrics = self.ensemble.run_training(
+                model_class,
+                hyperparams,
+                X_train,
+                y_train,
+                X_val,
+                y_val,
+                feature_names,
+            )
 
+            results_summary.append(
+                {
+                    "model": model_name,
+                    "train_acc": train_metrics["accuracy"],
+                    "test_acc": test_metrics["accuracy"],
+                    "val_acc": val_metrics["accuracy"]
+                }
+            )
+
+            self._print_metrics(model_name, test_metrics)
         return self.ensemble.load_models()
+
+    def _plot_performance_comparison(self, results_summary):
+        df = pd.DataFrame(results_summary)
+        df.set_index("model", inplace=True)
+        df.plot(kind="bar", figsize=(10, 6))
+        plt.ylabel("Accuracy")
+        plt.title("Train / Test / Validation Performance Comparison")
+        plt.xticks(rotation=45)
+        plt.grid(axis="y")
+        plt.tight_layout()
+        plt.show()

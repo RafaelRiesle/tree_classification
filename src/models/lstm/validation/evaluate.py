@@ -7,10 +7,11 @@ from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
 from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
 
 
-DATA_DIR = Path("../../data/processed")
-TRAIN_PATH = DATA_DIR / "train.csv"
-TEST_PATH = DATA_DIR / "test.csv"
-VAL_PATH = DATA_DIR / "val.csv"
+BASE_DIR = Path(__file__).parents[4]
+TRAIN_PATH = BASE_DIR / "data/processed/trainset.csv"
+TEST_PATH = BASE_DIR / "data/processed/testset.csv"
+VAL_PATH = BASE_DIR / "data/processed/valset.csv"
+
 
 def get_checkpoint_path(filename="species_model.ckpt") -> Path:
     return Path(__file__).parent.parent / "experiments" / "trained_model" / filename
@@ -38,8 +39,15 @@ def plot_metrics(metrics: dict):
     plt.show()
 
 
-def evaluate_model(checkpoint_path: str, batch_size: int = 50):
-    data = prepare_data(train_path=TRAIN_PATH, test_path=TEST_PATH, val_path=VAL_PATH)
+def evaluate_model(
+    checkpoint_path: str,
+    train_path: Path,
+    test_path: Path,
+    val_path: Path,
+    batch_size: int = 50,
+):
+
+    data = prepare_data(train_path=train_path, test_path=test_path, val_path=val_path)
 
     data_module = SpeciesDataModule(
         train_seqs=data["train_sequences"],
@@ -63,10 +71,28 @@ def evaluate_model(checkpoint_path: str, batch_size: int = 50):
     plot_metrics(metrics)
 
 
-def run_lstm_evaluation(batch_size=50):
+def run_lstm_evaluation(
+    train_path: Path,
+    test_path: Path,
+    val_path: Path,
+    batch_size: int = 50,
+):
+
     checkpoint = get_checkpoint_path()
-    evaluate_model(checkpoint_path=str(checkpoint), batch_size=batch_size)
+    evaluate_model(
+        checkpoint_path=str(checkpoint),
+        train_path=train_path,
+        test_path=test_path,
+        val_path=val_path,
+        batch_size=batch_size,
+    )
 
 
 if __name__ == "__main__":
-    run_lstm_evaluation(batch_size=50)
+
+    run_lstm_evaluation(
+        train_path=TRAIN_PATH,
+        test_path=TEST_PATH,
+        val_path=VAL_PATH,
+        batch_size=50,
+    )
