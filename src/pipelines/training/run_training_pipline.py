@@ -48,15 +48,13 @@ def run_preprocessing():
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
-        remove_outliers=True,
+        remove_outliers=False,
         contamination=0.05,
-        force_split_creation=True,
+        force_split_creation=False,
     )
     print("[1] Preprocessing complete.\n")
 
-
-# === SCHRITT 2: Processing für alle Splits ===
-def run_processing_and_save():
+def run_processing():
     print("[2] Running processing for train, test and val datasets...")
 
     steps = [
@@ -93,9 +91,6 @@ def run_processing_and_save():
         pipeline = ProcessingPipeline(path=input_path, steps=steps)
         df_processed = pipeline.run()
 
-        if "split" not in df_processed.columns:
-            df_processed["split"] = split_name
-
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df_processed.to_csv(output_path, index=False)
         print(f"✓ Saved processed {split_name} set to: {output_path}")
@@ -103,7 +98,6 @@ def run_processing_and_save():
     print("[2] Processing for all datasets complete.\n")
 
 
-# === SCHRITT 3: Ensemble Training ===
 def run_ensemble_models():
     print("[3] Training ensemble models...")
     run_ensemble(**paths)
@@ -111,7 +105,7 @@ def run_ensemble_models():
     print("[3] Ensemble training complete.\n")
 
 
-# === SCHRITT 4: LSTM Training ===
+
 def run_lstm_models():
     print("[4] Training LSTM model...")
     run_lstm(**paths, batch_size=16, lr=1e-3, max_epochs=2)
@@ -119,16 +113,13 @@ def run_lstm_models():
     print("[4] LSTM training complete.\n")
 
 
-# === GESAMTE PIPELINE STARTEN ===
 def run_training_pipeline():
     print("=== Starting Training Pipeline ===")
     run_preprocessing()
-    run_processing_and_save()
+    run_processing()
     run_ensemble_models()
     run_lstm_models()
     print("=== Training Pipeline Finished ===")
 
-
-# === ENTRYPOINT ===
 if __name__ == "__main__":
     run_training_pipeline()

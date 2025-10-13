@@ -77,7 +77,7 @@ def run_outlier_detection(
     force: bool = False,
 ):
     """
-    Detect and remove outliers from each split and save the cleaned data.
+    Detect and remove outliers from each split and save only interpolated data.
     Only overwrite files if force=True.
     """
     preprocessed_output.mkdir(parents=True, exist_ok=True)
@@ -87,9 +87,11 @@ def run_outlier_detection(
         if output_file.exists() and not force:
             print(f"{output_file} exists and force=False, skipping...")
             continue
-        cleaned_df = cleaner.fit_transform(df_split, spectral_bands)
-        cleaned_df.to_csv(output_file, index=False)
+        cleaner.fit_transform(df_split, spectral_bands)
+        interpolated_df = cleaner.get_interpolated_only()
+        interpolated_df.to_csv(output_file, index=False)
         print(f"{name} split cleaned and saved at {output_file}")
+
 
 
 def run_preprocessing_pipeline(
@@ -138,5 +140,5 @@ if __name__ == "__main__":
         val_ratio=0.1,
         remove_outliers=True,
         contamination=0.05,
-        force_split_creation=False,
+        force_split_creation=True,
     )

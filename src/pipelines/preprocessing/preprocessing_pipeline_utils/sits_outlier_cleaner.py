@@ -59,24 +59,18 @@ class SITSOutlierCleaner:
         return self.cleaned_df
 
     def get_interpolated_only(self):
-        """Return only the original band columns plus id and time"""
+        """Return cleaned dataframe with only the original columns (excluding outlier flags and original copies)."""
         if self.cleaned_df is None:
             raise ValueError("Please run fit_transform first.")
-        return self.cleaned_df[["id", "time"] + self.band_columns].copy()
 
-    def remaining_outliers_ratio(self):
-        """Quote der noch vom IsolationForest markierten Ausreißer"""
-        if self.cleaned_df is None:
-            raise ValueError("Bitte zuerst fit_transform ausführen.")
-        outlier_cols = [f"is_outlier_{band}" for band in self.band_columns]
-        remaining = self.cleaned_df[outlier_cols].any(axis=1).sum()
-        total = len(self.cleaned_df)
-        return remaining / total
+        excluded_suffixes = ["_original"]
+        excluded_prefixes = ["is_outlier_"]
 
-    def zscore_outlier_ratio(self, threshold=3):
-        """Anteil der Werte, die nach Z-Score-Definition Ausreißer sind"""
-        if self.cleaned_df is None:
-            raise ValueError("Bitte zuerst fit_transform ausführen.")
-        z = self.cleaned_df[self.band_columns].apply(zscore)
-        mask = (np.abs(z) > threshold).any(axis=1)
-        return mask.mean()
+        original_columns = [
+            col
+            for col in self.cleaned_df.columns
+            if not any(col.endswith(suf) for suf in excluded_suffixes)
+            and not any(col.startswith(pre) for pre in excluded_prefixes)
+        ]
+
+        return self.cleaned_df[original_columns].copy()
