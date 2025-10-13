@@ -4,6 +4,7 @@ from models.ensemble_models.experiments.run_ensemble import run_ensemble
 from models.ensemble_models.evaluation.evaluate_models import run_evaluation
 from models.lstm.experiments.run_lstm import run_lstm
 from models.lstm.validation.evaluate import run_lstm_evaluation
+from pipelines.processing.processing_pipeline import ProcessingPipeline
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -28,6 +29,20 @@ def run_training_pipeline():
     print("[1] Preprocessing finished")
 
     print("[2] Placeholder for additional preprocessing")
+
+    pipeline = ProcessingPipeline(
+        df=df,# lieber path, 
+        basic_features=True,
+        data_augmentation=False,
+        calculate_indices=True,
+        temporal_features=True,
+        interpolate_b4=True,
+        outlier_cleaner=False,
+        detect_disturbed_trees=False, 
+        specify_disturbed_labels=True,
+    )
+
+    df_cleaned = pipeline.run()
     print("[2] Additional preprocessing finished")
 
     print("[3] Training ensemble models")
@@ -49,3 +64,4 @@ def run_training_pipeline():
 
 if __name__ == "__main__":
     run_training_pipeline()
+
