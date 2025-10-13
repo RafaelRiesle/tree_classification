@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
-from preprocessing.features.statistical_features import StatisticalFeatures
+from features.statistical_features import StatisticalFeatures
 
 bands_and_indices = spectral_bands + indices
 

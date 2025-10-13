@@ -3,7 +3,7 @@ import numpy as np
 from tsaug import Drift, AddNoise
 from scipy.interpolate import interp1d
 import warnings
-from preprocessing.preprocessing_pipeline.constants import spectral_bands
+from general_utils.constants import spectral_bands
 
 warnings.filterwarnings("ignore")
 

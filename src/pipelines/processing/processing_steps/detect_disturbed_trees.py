@@ -1,10 +1,13 @@
 import pandas as pd
-import numpy as np
 from scipy.stats import linregress
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
+# TODO sys & os entfernen
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 from general_utils.constants import spectral_bands, indices
 
 
