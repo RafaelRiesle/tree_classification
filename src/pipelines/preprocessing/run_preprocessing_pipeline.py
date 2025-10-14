@@ -20,15 +20,16 @@ PREPROCESSED_PATH = BASE_DIR / "data/preprocessed"
 def create_splits(
     df: pd.DataFrame,
     output_path: Path,
-    sample_size: int = 50,
+    sample_size: int | None = 50,
     train_ratio: float = 0.7,
     test_ratio: float = 0.2,
     val_ratio: float = 0.1,
 ) -> dict:
     """Create train/test/validation splits and save them to CSV."""
-    return DatasetSplitLoader(
-        df.sample(sample_size), output_path=output_path
-    ).create_splits(
+    if sample_size is not None:
+        df = df.sample(sample_size)
+    
+    return DatasetSplitLoader(df, output_path=output_path).create_splits(
         train_ratio=train_ratio,
         test_ratio=test_ratio,
         validation_ratio=val_ratio,
@@ -36,6 +37,7 @@ def create_splits(
     )
 
 
+#TODO was ost wenn kein outlier cleaning? welche daten nehmen 
 def load_or_create_splits(
     df: pd.DataFrame,
     output_path: Path,
@@ -56,9 +58,9 @@ def load_or_create_splits(
     if not force and train_path.exists() and test_path.exists() and val_path.exists():
         print("Existing splits found, loading them...")
         splits = {
-            "train": pd.read_csv(train_path),
-            "test": pd.read_csv(test_path),
-            "val": pd.read_csv(val_path),
+            "train": pd.read_csv(train_path, parse_dates=["time"]),
+            "test": pd.read_csv(test_path, parse_dates=["time"]),
+            "val": pd.read_csv(val_path, parse_dates=["time"]),
         }
     else:
         print("Creating new splits...")
@@ -134,7 +136,7 @@ if __name__ == "__main__":
         data_path=DATA_PATH,
         splits_output_path=SPLITS_PATH,
         preprocessed_output_path=PREPROCESSED_PATH,
-        sample_size=100,
+        sample_size=None,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,

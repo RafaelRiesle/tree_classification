@@ -21,7 +21,8 @@ class SITSOutlierCleaner:
             model = IsolationForest(
                 contamination=self.contamination,
                 random_state=self.random_state,
-                n_estimators=50,
+                n_estimators=100,
+                n_jobs=-1
             )
             preds = model.fit_predict(data_scaled)
             df_id[f"is_outlier_{band}"] = preds == -1

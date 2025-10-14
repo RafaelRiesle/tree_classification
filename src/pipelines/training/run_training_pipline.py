@@ -43,7 +43,7 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=100,
+        sample_size=300,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
@@ -57,11 +57,11 @@ def run_processing():
     print("[2] Running processing for train, test and val datasets...")
 
     steps = [
-        BasicFeatures(on=True),
-        TemporalFeatures(on=True),
-        Interpolation(on=True),
-        DataAugmentation(on=True),
-        CalculateIndices(on=True),
+        BasicFeatures(on=False),
+        TemporalFeatures(on=False),
+        Interpolation(on=False),
+        DataAugmentation(on=False),
+        CalculateIndices(on=False),
         # AdjustLabels(on=False),
         # DetectDisturbedTrees(on=False),
     ]
