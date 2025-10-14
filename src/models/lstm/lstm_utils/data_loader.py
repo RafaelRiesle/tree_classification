@@ -32,22 +32,22 @@ class DataLoader:
         df = df.sort_values(["id", "time"]).reset_index(drop=True).drop_duplicates()
         return df
 
-    def date_feature_extraction(self, df):
-        df = df.copy()
-        df["month_num"] = df["time"].dt.month
-        df["year"] = df["time"].dt.year
-        seasons = ["Winter", "Spring", "Summer", "Autumn"]
-        df["season"] = df["month_num"].apply(lambda m: seasons[((m % 12) // 3)])
-        df["date_diff"] = df.groupby("id")["time"].diff().dt.days
-        return df
+    # def date_feature_extraction(self, df):
+    #     df = df.copy()
+    #     df["month_num"] = df["time"].dt.month
+    #     df["year"] = df["time"].dt.year
+    #     seasons = ["Winter", "Spring", "Summer", "Autumn"]
+    #     df["season"] = df["month_num"].apply(lambda m: seasons[((m % 12) // 3)])
+    #     df["date_diff"] = df.groupby("id")["time"].diff().dt.days
+    #     return df
 
-    def feature_extraction(self, df):
-        df = df.copy()
-        if "disturbance_year" not in df.columns:
-            df["is_disturbed"] = False
-        else:
-            df["is_disturbed"] = df["disturbance_year"].apply(lambda x: x != 0)
-        return df
+    # def feature_extraction(self, df):
+    #     df = df.copy()
+    #     if "disturbance_year" not in df.columns:
+    #         df["is_disturbed"] = False
+    #     else:
+    #         df["is_disturbed"] = df["disturbance_year"].apply(lambda x: x != 0)
+    #     return df
 
     def get_sample(self, df, id_col="id", time_col="time", n_ids=40):
         """
