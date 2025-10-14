@@ -4,7 +4,7 @@ import pandas as pd
 class ProcessingPipeline:
     def __init__(self, steps=None, path: str = None):
         """
-        Example: steps = [BasicFeatures(), TemporalFeatures()]
+        Example: steps = [BasicFeatures(on=True), TemporalFeatures(on=False)]
         """
         self.steps = steps or []
         self.path = path
