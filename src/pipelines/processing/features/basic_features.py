@@ -12,7 +12,16 @@ class BasicFeatures:
             df["is_disturbed"] = df["disturbance_year"].apply(lambda x: x != 0)
         return df
     
+    def delete_doy(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        if "doy" in df.columns:
+            df = df.drop(columns=["doy"])
+        return df
+    
     def run(self, df):
         if not self.on:
             return df
-        return self.add_disturbance_flag(df)
+        df = self.add_disturbance_flag(df)
+        df = self.delete_doy(df)
+        return df
+    
