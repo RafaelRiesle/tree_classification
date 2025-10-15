@@ -50,16 +50,14 @@ class GenericPipeline:
                 )
             )
 
-    def run(self, train_df, test_df, model_defs, val_df=None):
+    def run(self, train_df, test_df, model_defs, val_df):
         """
         Trains and evaluates all models defined in model_defs.
         Optionally evaluates a validation set.
         """
         X_train, y_train = self.pipeline.fit(train_df)
         X_test, y_test = self.pipeline.transform(test_df)
-        X_val, y_val = (None, None)
-        if val_df is not None:
-            X_val, y_val = self.pipeline.transform(val_df)
+        X_val, y_val = self.pipeline.transform(val_df)
 
         feature_names = (
             X_train.columns

@@ -43,28 +43,19 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=300,
+        sample_size=100,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
         remove_outliers=False,
         contamination=0.05,
-        force_split_creation=False,
+        force_split_creation=True,
     )
     print("[1] Preprocessing complete.\n")
 
 def run_processing():
     print("[2] Running processing for train, test and val datasets...")
 
-    steps = [
-        BasicFeatures(on=False),
-        TemporalFeatures(on=False),
-        Interpolation(on=False),
-        DataAugmentation(on=False),
-        CalculateIndices(on=False),
-        # AdjustLabels(on=False),
-        # DetectDisturbedTrees(on=False),
-    ]
 
     split_to_paths = {
         "train": {
@@ -80,6 +71,17 @@ def run_processing():
             "output": paths["val_path"],
         },
     }
+
+
+    steps = [
+        BasicFeatures(on=False),
+        TemporalFeatures(on=False),
+        Interpolation(on=True),
+        DataAugmentation(on=False),
+        CalculateIndices(on=True), #TODO Muss auf True sein 
+        # AdjustLabels(on=False),
+        # DetectDisturbedTrees(on=False),
+    ]
 
     for split_name, path_dict in split_to_paths.items():
         input_path = path_dict["input"]
@@ -117,7 +119,7 @@ def run_training_pipeline():
     run_preprocessing()
     run_processing()
     run_ensemble_models()
-    run_lstm_models()
+    # run_lstm_models()
     print("=== Training Pipeline Finished ===")
 
 if __name__ == "__main__":

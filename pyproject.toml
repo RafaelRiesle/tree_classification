@@ -23,7 +23,9 @@ dependencies = [
   "tensorflow==2.16.2",
   "tqdm",
   "tabulate",
-  "pytorch_lightning"
+  "pytorch_lightning",
+  "lightgbm",
+  "tqdm_joblib"
 ]
 
 

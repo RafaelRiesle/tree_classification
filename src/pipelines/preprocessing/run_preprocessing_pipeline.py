@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from general_utils.constants import spectral_bands
-from general_utils.utility_functions import load_data
+from general_utils.utility_functions import load_data, get_id_sample
 from pipelines.preprocessing.preprocessing_pipeline_utils.sits_outlier_cleaner import (
     SITSOutlierCleaner,
 )
@@ -27,7 +27,7 @@ def create_splits(
 ) -> dict:
     """Create train/test/validation splits and save them to CSV."""
     if sample_size is not None:
-        df = df.sample(sample_size)
+        df = get_id_sample(df,n_ids=sample_size)
     
     return DatasetSplitLoader(df, output_path=output_path).create_splits(
         train_ratio=train_ratio,
@@ -47,15 +47,17 @@ def load_or_create_splits(
     val_ratio: float = 0.1,
     force: bool = False,
 ) -> dict:
-    """
-    Load existing splits if available, otherwise create new splits.
-    If force=True, overwrite existing splits.
-    """
     train_path = output_path / "trainset.csv"
     test_path = output_path / "testset.csv"
     val_path = output_path / "valset.csv"
 
-    if not force and train_path.exists() and test_path.exists() and val_path.exists():
+    if force:
+        print("Force flag is True — recreating splits and overwriting old files...")
+        output_path.mkdir(parents=True, exist_ok=True)
+        splits = create_splits(df, output_path, sample_size, train_ratio, test_ratio, val_ratio)
+        return splits
+
+    if train_path.exists() and test_path.exists() and val_path.exists():
         print("Existing splits found, loading them...")
         splits = {
             "train": pd.read_csv(train_path, parse_dates=["time"]),
@@ -65,11 +67,10 @@ def load_or_create_splits(
     else:
         print("Creating new splits...")
         output_path.mkdir(parents=True, exist_ok=True)
-        splits = create_splits(
-            df, output_path, sample_size, train_ratio, test_ratio, val_ratio
-        )
+        splits = create_splits(df, output_path, sample_size, train_ratio, test_ratio, val_ratio)
 
     return splits
+
 
 
 def run_outlier_detection(
@@ -122,13 +123,22 @@ def run_preprocessing_pipeline(
         force=force_split_creation,
     )
 
+    preprocessed_output_path.mkdir(parents=True, exist_ok=True)
+
     if remove_outliers:
+        print("[Preprocessing] Running outlier detection...")
         run_outlier_detection(
             splits,
             preprocessed_output_path,
             contamination=contamination,
             force=force_split_creation,
         )
+    else:
+        print("[Preprocessing] Skipping outlier detection — copying splits to preprocessed folder.")
+        for split_name, df_split in splits.items():
+            output_file = preprocessed_output_path / f"{split_name}set.csv"
+            df_split.to_csv(output_file, index=False)
+            print(f"✓ Saved {split_name} split to {output_file}")
 
 
 if __name__ == "__main__":

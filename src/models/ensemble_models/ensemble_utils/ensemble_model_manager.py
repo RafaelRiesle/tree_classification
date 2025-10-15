@@ -127,10 +127,10 @@ class EnsembleModelManager:
             feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
         )
 
-        # Modell-Dict vorbereiten
+       
         model_dict = self.prepare_model_dict(model_class, hyperparams, metrics, feature_names)
 
-        # Trainiertes Modell speichern
+
         model_file = self.results_dir / f"{model_dict['model']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
         joblib.dump(model, model_file)
         model_dict["model_file"] = str(model_file)

@@ -3,8 +3,8 @@ from pathlib import Path
 from general_utils.utility_functions import load_data
 from sklearn.ensemble import RandomForestClassifier
 from models.ensemble_models.pipelines.pipeline_generic import GenericPipeline
-from sklearn.linear_model import LogisticRegression
-
+import lightgbm as lgb
+import xgboost as xgb
 
 
 BASE_DIR = Path(__file__).parents[4]
@@ -14,12 +14,10 @@ VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 
 def define_models():
     return [
-        (
-            RandomForestClassifier,
-            {"n_estimators": [5, 10], "max_depth": [1, 2, 4]},
-        ),
-        (LogisticRegression, {"max_iter": [100, 200]}),
-    ]
+    (RandomForestClassifier, {"n_estimators": 100, "max_depth": 10}),
+    (lgb.LGBMClassifier, {"n_estimators": 100, "learning_rate": 0.1}),
+    (xgb.XGBClassifier, {"n_estimators": [100,200], "learning_rate": 0.1, "max_depth":[10, 20]}),
+]
 
 
 def train_models(train_df, test_df, models, target_col="species"):
@@ -30,7 +28,6 @@ def train_models(train_df, test_df, models, target_col="species"):
 
 def run_ensemble(train_path=TRAIN_PATH, test_path=TEST_PATH, val_path=VAL_PATH):
     train_df, test_df, val_df = load_data(train_path, test_path, val_path)
-
     models = define_models()
     results = GenericPipeline().run(train_df, test_df, models, val_df=val_df)
     return results

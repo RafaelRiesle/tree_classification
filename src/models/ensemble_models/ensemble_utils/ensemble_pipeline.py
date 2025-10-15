@@ -1,5 +1,8 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+from models.ensemble_models.ensemble_utils.time_series_features import (
+    TimeSeriesAggregator,
+)
 
 
 class EnsemblePipeline:
@@ -21,23 +24,25 @@ class EnsemblePipeline:
         return pd.get_dummies(df, columns=self.categorical_cols, drop_first=True)
 
     def fit(self, train_df):
-        df = self.drop_columns(train_df.copy())
+        ts_builder = TimeSeriesAggregator(window=120, step=90)
+        feature_df = ts_builder.run(train_df)
 
-        # Encode target
+        feature_df[self.target_col] = (
+            train_df.groupby("id")[self.target_col].first().values
+        )
+
+        df = self.drop_columns(feature_df.copy())
+
         df[self.target_col] = self.label_encoder.fit_transform(df[self.target_col])
 
-        # Identify categorical columns
         self.categorical_cols = [
             c
             for c in df.select_dtypes(include=["object", "category"]).columns
             if c != self.target_col
         ]
 
-        # One-hot encode and split
         df = self._encode_features(df)
         X, y = df.drop(columns=[self.target_col]), df[self.target_col]
-
-        # Scale
         X_scaled = self.scaler.fit_transform(X)
         self.fitted = True
 
@@ -47,14 +52,20 @@ class EnsemblePipeline:
         if not self.fitted:
             raise RuntimeError("Pipeline must be fitted before transform().")
 
-        df = self.drop_columns(df.copy())
+        ts_builder = TimeSeriesAggregator(window=120, step=90)
+        feature_df = ts_builder.run(df)
+
+        if self.target_col in df.columns:
+            feature_df[self.target_col] = (
+                df.groupby("id")[self.target_col].first().values
+            )
+
+        df = self.drop_columns(feature_df.copy())
 
         if self.target_col in df.columns:
             df[self.target_col] = self.label_encoder.transform(df[self.target_col])
 
         df = self._encode_features(df)
-
-        # Reorder columns to match training set
         X = df.drop(columns=[self.target_col]) if self.target_col in df.columns else df
         X = X.reindex(columns=self.scaler.feature_names_in_, fill_value=0)
 

@@ -15,7 +15,7 @@ class TemporalFeatures:
         df["month_num"] = df["time"].dt.month
         df["year"] = df["time"].dt.year
 
-        seasons = ["Winter", "Spring", "Summer", "Autumn"]
+        seasons = [1, 2, 3, 4] # Winter, Spring, Summer, Fall
         df["season"] = df["month_num"].apply(lambda m: seasons[((m % 12) // 3)])
 
         return df
