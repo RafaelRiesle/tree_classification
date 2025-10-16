@@ -1,12 +1,10 @@
 import pandas as pd
 from pathlib import Path
-
-# === IMPORTS FÜR PIPELINES & MODELLE ===
 from pipelines.preprocessing.run_preprocessing_pipeline import (
     run_preprocessing_pipeline,
 )
 from models.ensemble_models.experiments.run_ensemble import run_ensemble
-from models.ensemble_models.evaluation.evaluate_models import run_ensemble_evaluation
+from models.ensemble_models.evaluation.run_evalution_for_best_model import run_evaluation_for_best_model
 from models.lstm.experiments.run_lstm import run_lstm
 from models.lstm.validation.evaluate import run_lstm_evaluation
 
@@ -43,7 +41,7 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=200,
+        sample_size=None,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
@@ -102,7 +100,7 @@ def run_processing():
 def run_ensemble_models():
     print("[3] Training ensemble models...")
     run_ensemble(**paths)
-    run_ensemble_evaluation()
+    run_evaluation_for_best_model()
     print("[3] Ensemble training complete.\n")
 
 
@@ -117,9 +115,9 @@ def run_lstm_models():
 def run_training_pipeline():
     print("=== Starting Training Pipeline ===")
     run_preprocessing()
-    #run_processing()
-    run_lstm_models()
-    #run_ensemble_models()
+    run_processing() 
+    run_ensemble_models()
+    #run_lstm_models()
     print("=== Training Pipeline Finished ===")
 
 if __name__ == "__main__":

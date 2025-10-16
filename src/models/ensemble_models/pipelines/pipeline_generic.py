@@ -122,14 +122,3 @@ class GenericPipeline:
 
             self._print_metrics(model_name, test_metrics)
         return self.ensemble.load_models()
-
-    def _plot_performance_comparison(self, results_summary):
-        df = pd.DataFrame(results_summary)
-        df.set_index("model", inplace=True)
-        df.plot(kind="bar", figsize=(10, 6))
-        plt.ylabel("Accuracy")
-        plt.title("Train / Test / Validation Performance Comparison")
-        plt.xticks(rotation=45)
-        plt.grid(axis="y")
-        plt.tight_layout()
-        plt.show()

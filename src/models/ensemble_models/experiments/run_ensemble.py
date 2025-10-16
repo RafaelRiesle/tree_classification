@@ -1,8 +1,7 @@
-
 from pathlib import Path
 from general_utils.utility_functions import load_data
-from sklearn.ensemble import RandomForestClassifier
 from models.ensemble_models.pipelines.pipeline_generic import GenericPipeline
+from sklearn.ensemble import RandomForestClassifier
 import lightgbm as lgb
 import xgboost as xgb
 
@@ -12,10 +11,22 @@ TRAIN_PATH = BASE_DIR / "data/processed/trainset.csv"
 TEST_PATH = BASE_DIR / "data/processed/testset.csv"
 VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 
+
 def define_models():
     return [
-    (RandomForestClassifier, {"n_estimators": [200,500], "max_depth": [10,20]}),
-]
+        (
+            RandomForestClassifier,
+            {"n_estimators": [250], "max_depth": [15, 20], "min_samples_split": [5]},
+        ),
+        # (
+        #     xgb.XGBClassifier,
+        #     {
+        #         "n_estimators": [10],
+        #         "learning_rate": [0.01],
+        #         "max_depth": [10],
+        #     },
+        # ),
+    ]
 
 
 def train_models(train_df, test_df, models, target_col="species"):

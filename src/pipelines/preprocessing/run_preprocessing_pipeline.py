@@ -146,11 +146,11 @@ if __name__ == "__main__":
         data_path=DATA_PATH,
         splits_output_path=SPLITS_PATH,
         preprocessed_output_path=PREPROCESSED_PATH,
-        sample_size=None,
+        sample_size=100,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
-        remove_outliers=True,
+        remove_outliers=False,
         contamination=0.05,
         force_split_creation=True,
     )
