@@ -43,7 +43,7 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=100,
+        sample_size=200,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
@@ -109,17 +109,17 @@ def run_ensemble_models():
 
 def run_lstm_models():
     print("[4] Training LSTM model...")
-    run_lstm(**paths, batch_size=16, lr=1e-3, max_epochs=2)
-    run_lstm_evaluation(**paths, batch_size=50)
+    run_lstm(**paths, batch_size=64, lr=1e-3, max_epochs=250)
+    run_lstm_evaluation(**paths, batch_size=64)
     print("[4] LSTM training complete.\n")
 
 
 def run_training_pipeline():
     print("=== Starting Training Pipeline ===")
     run_preprocessing()
-    run_processing()
-    run_ensemble_models()
-    # run_lstm_models()
+    #run_processing()
+    run_lstm_models()
+    #run_ensemble_models()
     print("=== Training Pipeline Finished ===")
 
 if __name__ == "__main__":

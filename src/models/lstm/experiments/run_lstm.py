@@ -32,7 +32,7 @@ def create_trainer(device: str, max_epochs: int):
         max_epochs=max_epochs,
         accelerator="gpu" if device == "cuda" else "cpu",
         devices=1,
-        log_every_n_steps=10,
+        log_every_n_steps=50,
         deterministic=True,
     )
 

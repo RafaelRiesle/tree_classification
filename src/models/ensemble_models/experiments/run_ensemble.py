@@ -14,9 +14,7 @@ VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 
 def define_models():
     return [
-    (RandomForestClassifier, {"n_estimators": 100, "max_depth": 10}),
-    (lgb.LGBMClassifier, {"n_estimators": 100, "learning_rate": 0.1}),
-    (xgb.XGBClassifier, {"n_estimators": [100,200], "learning_rate": 0.1, "max_depth":[10, 20]}),
+    (RandomForestClassifier, {"n_estimators": [200,500], "max_depth": [10,20]}),
 ]
 
 
