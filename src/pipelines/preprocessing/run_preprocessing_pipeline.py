@@ -16,7 +16,6 @@ SPLITS_PATH = BASE_DIR / "data/raw/splits"
 PREPROCESSED_PATH = BASE_DIR / "data/preprocessed"
 
 
-
 def create_splits(
     df: pd.DataFrame,
     output_path: Path,
@@ -27,8 +26,8 @@ def create_splits(
 ) -> dict:
     """Create train/test/validation splits and save them to CSV."""
     if sample_size is not None:
-        df = get_id_sample(df,n_ids=sample_size)
-    
+        df = get_id_sample(df, n_ids=sample_size)
+
     return DatasetSplitLoader(df, output_path=output_path).create_splits(
         train_ratio=train_ratio,
         test_ratio=test_ratio,
@@ -37,7 +36,7 @@ def create_splits(
     )
 
 
-#TODO was ost wenn kein outlier cleaning? welche daten nehmen 
+# TODO was ost wenn kein outlier cleaning? welche daten nehmen
 def load_or_create_splits(
     df: pd.DataFrame,
     output_path: Path,
@@ -54,7 +53,9 @@ def load_or_create_splits(
     if force:
         print("Force flag is True — recreating splits and overwriting old files...")
         output_path.mkdir(parents=True, exist_ok=True)
-        splits = create_splits(df, output_path, sample_size, train_ratio, test_ratio, val_ratio)
+        splits = create_splits(
+            df, output_path, sample_size, train_ratio, test_ratio, val_ratio
+        )
         return splits
 
     if train_path.exists() and test_path.exists() and val_path.exists():
@@ -67,10 +68,11 @@ def load_or_create_splits(
     else:
         print("Creating new splits...")
         output_path.mkdir(parents=True, exist_ok=True)
-        splits = create_splits(df, output_path, sample_size, train_ratio, test_ratio, val_ratio)
+        splits = create_splits(
+            df, output_path, sample_size, train_ratio, test_ratio, val_ratio
+        )
 
     return splits
-
 
 
 def run_outlier_detection(
@@ -94,7 +96,6 @@ def run_outlier_detection(
         interpolated_df = cleaner.get_interpolated_only()
         interpolated_df.to_csv(output_file, index=False)
         print(f"{name} split cleaned and saved at {output_file}")
-
 
 
 def run_preprocessing_pipeline(
@@ -134,7 +135,9 @@ def run_preprocessing_pipeline(
             force=force_split_creation,
         )
     else:
-        print("[Preprocessing] Skipping outlier detection — copying splits to preprocessed folder.")
+        print(
+            "[Preprocessing] Skipping outlier detection — copying splits to preprocessed folder."
+        )
         for split_name, df_split in splits.items():
             output_file = preprocessed_output_path / f"{split_name}set.csv"
             df_split.to_csv(output_file, index=False)

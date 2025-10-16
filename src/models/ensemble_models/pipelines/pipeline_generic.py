@@ -116,7 +116,7 @@ class GenericPipeline:
                     "model": model_name,
                     "train_acc": train_metrics["accuracy"],
                     "test_acc": test_metrics["accuracy"],
-                    "val_acc": val_metrics["accuracy"]
+                    "val_acc": val_metrics["accuracy"],
                 }
             )
 

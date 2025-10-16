@@ -36,8 +36,6 @@ class SITSOutlierCleaner:
             )
         return df_id
 
-
-
     def fit_transform(self, df, band_columns):
         self.band_columns = band_columns
         self.cleaned_df = []

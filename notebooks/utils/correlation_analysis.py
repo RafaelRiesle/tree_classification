@@ -58,25 +58,27 @@ class CorrelationAnalysis:
         corr_series = self.df.corr(numeric_only=True)[target_col].drop(target_col)
         corr_series = corr_series.sort_values(ascending=False)
 
-        df_corr = pd.DataFrame({
-            "feature": corr_series.index,
-            "correlation": corr_series.values
-        })
+        df_corr = pd.DataFrame(
+            {"feature": corr_series.index, "correlation": corr_series.values}
+        )
 
         df_corr["abs_corr"] = df_corr["correlation"].abs()
 
         return df_corr
-    
+
     def plot_correlations_with_target(self, df_corr, top_n: int):
         df_corr = df_corr.sort_values(by="abs_corr", ascending=True).tail(top_n)
         df_corr = df_corr.reset_index(drop=True)
         colors = [
-            "orange" if val < 0 else "royalblue"
-            for val in df_corr["correlation"]
+            "orange" if val < 0 else "royalblue" for val in df_corr["correlation"]
         ]
 
         plt.figure(figsize=(10, 7))
-        plt.barh(df_corr["feature"], df_corr["abs_corr"], color=colors,)
+        plt.barh(
+            df_corr["feature"],
+            df_corr["abs_corr"],
+            color=colors,
+        )
 
         plt.xlabel("Correlation")
         plt.ylabel("Feature")

@@ -22,6 +22,3 @@ class ProcessingPipeline:
         for step in self.steps:
             df = step.run(df)
         return df
-    
-    
-

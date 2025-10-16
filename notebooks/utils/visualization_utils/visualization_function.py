@@ -145,7 +145,6 @@ def plot_autocorrelation_bands(df, bands, lags=26):
     plt.show()
 
 
-
 def plot_timeseries(
     df, col1, col2, id=None, agg=False, year_filter=None, figsize=(10, 6)
 ):

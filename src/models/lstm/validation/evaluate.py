@@ -46,7 +46,6 @@ def evaluate_model(
     val_path: Path,
     batch_size: int = 50,
 ):
-
     data = prepare_data(train_path=train_path, test_path=test_path, val_path=val_path)
 
     data_module = SpeciesDataModule(
@@ -77,7 +76,6 @@ def run_lstm_evaluation(
     val_path: Path,
     batch_size: int = 50,
 ):
-
     checkpoint = get_checkpoint_path()
     evaluate_model(
         checkpoint_path=str(checkpoint),
@@ -89,7 +87,6 @@ def run_lstm_evaluation(
 
 
 if __name__ == "__main__":
-
     run_lstm_evaluation(
         train_path=TRAIN_PATH,
         test_path=TEST_PATH,

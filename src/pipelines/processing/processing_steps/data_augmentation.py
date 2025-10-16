@@ -21,8 +21,8 @@ class DataAugmentation:
         """
         Augments spectral time-series data for all species except Norway spruce.
 
-        Each non-spruce species is upsampled and augmented with small drift and noise 
-        using `tsaug`, then linearly interpolated to match the time resolution of the 
+        Each non-spruce species is upsampled and augmented with small drift and noise
+        using `tsaug`, then linearly interpolated to match the time resolution of the
         Norway spruce series. The augmented data is combined with the original spruce data.
 
         Parameters
@@ -37,7 +37,7 @@ class DataAugmentation:
         """
         if not self.on:
             return df
-        
+
         df_trees_filter = df[df["species"] != "Norway_spruce"]
         spruce = df[df["species"] == "Norway_spruce"]
 
@@ -53,9 +53,7 @@ class DataAugmentation:
             time = df_species["time"].reset_index(drop=True)
 
             time_aug = pd.date_range(
-                start=time.min(),
-                end=time.max(),
-                periods=int(len(time) * scale_factor)
+                start=time.min(), end=time.max(), periods=int(len(time) * scale_factor)
             )
 
             aug_data = {"species": species, "time": time_aug}
@@ -66,13 +64,20 @@ class DataAugmentation:
                     continue
                 Y = df_species[col].interpolate().to_numpy().astype(np.float64)
                 Y_aug = augmenter.augment(Y)
-                f = interp1d(df_species["time"].view(np.int64), Y_aug, kind="linear", fill_value="extrapolate")
+                f = interp1d(
+                    df_species["time"].view(np.int64),
+                    Y_aug,
+                    kind="linear",
+                    fill_value="extrapolate",
+                )
                 aug_data[col] = f(time_aug.view(np.int64))
 
             df_aug_species = pd.DataFrame(aug_data)
             augmented_dfs.append(df_aug_species)
 
         df_aug_all = pd.concat(augmented_dfs, ignore_index=True)
-        df_trees = spruce.drop(columns=["id", "disturbance_year", "doy"], errors="ignore")
+        df_trees = spruce.drop(
+            columns=["id", "disturbance_year", "doy"], errors="ignore"
+        )
         df_aug_all = pd.concat([df_aug_all, df_trees])
         return df_aug_all

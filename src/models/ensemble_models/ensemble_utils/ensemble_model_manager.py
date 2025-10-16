@@ -119,7 +119,9 @@ class EnsembleModelManager:
     def run_training(
         self, model_class, hyperparams, X_train, y_train, X_test, y_test, feature_names
     ):
-        model, y_pred = self.train_and_predict(model_class, hyperparams, X_train, y_train, X_test)
+        model, y_pred = self.train_and_predict(
+            model_class, hyperparams, X_train, y_train, X_test
+        )
         metrics = self.compute_metrics(y_test, y_pred)
 
         feat_imp_df = self.extract_feature_importances(model, feature_names)
@@ -127,11 +129,14 @@ class EnsembleModelManager:
             feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
         )
 
-       
-        model_dict = self.prepare_model_dict(model_class, hyperparams, metrics, feature_names)
+        model_dict = self.prepare_model_dict(
+            model_class, hyperparams, metrics, feature_names
+        )
 
-
-        model_file = self.results_dir / f"{model_dict['model']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
+        model_file = (
+            self.results_dir
+            / f"{model_dict['model']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
+        )
         joblib.dump(model, model_file)
         model_dict["model_file"] = str(model_file)
 
@@ -149,9 +154,13 @@ class EnsembleModelManager:
     def get_best_model(self, metric="accuracy", ascending=False):
         df_results = self.load_models()
         if metric not in df_results.columns:
-            raise ValueError(f"Metric '{metric}' not found. Available: {df_results.columns.tolist()}")
+            raise ValueError(
+                f"Metric '{metric}' not found. Available: {df_results.columns.tolist()}"
+            )
 
-        df_sorted = df_results.sort_values(metric, ascending=ascending).reset_index(drop=True)
+        df_sorted = df_results.sort_values(metric, ascending=ascending).reset_index(
+            drop=True
+        )
         best_row = df_sorted.iloc[0]
         best_run_id = best_row["run_id"]
         best_model = self.get_model_by_id(best_run_id)
@@ -261,4 +270,3 @@ class EnsembleModelManager:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
- 

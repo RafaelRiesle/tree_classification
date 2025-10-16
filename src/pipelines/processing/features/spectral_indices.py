@@ -56,7 +56,6 @@ class CalculateIndices:
     def calculate_dvi(df: pd.DataFrame):
         return df["b8"] - df["b4"]
 
-    
     def run(self, df: pd.DataFrame):
         if not self.on:
             return df

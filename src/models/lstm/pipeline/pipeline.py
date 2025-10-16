@@ -18,14 +18,13 @@ TRAIN_PATH = BASE_DIR / "data/processed/trainset.csv"
 TEST_PATH = BASE_DIR / "data/processed/testset.csv"
 VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 
+
 def load_datasets(
     train_path: Path = TRAIN_PATH,
     test_path: Path = TEST_PATH,
     val_path: Path = VAL_PATH,
 ):
-    train_df, test_df, val_df = load_data(
-        train_path, test_path, val_path
-    )
+    train_df, test_df, val_df = load_data(train_path, test_path, val_path)
     return train_df, test_df, val_df
 
 
@@ -86,7 +85,7 @@ def prepare_data(
     test_path: Path = TEST_PATH,
     val_path: Path = VAL_PATH,
 ):
-    train_df, test_df, val_df  = load_datasets(
+    train_df, test_df, val_df = load_datasets(
         train_path=train_path, test_path=test_path, val_path=val_path
     )
     feature_columns = [

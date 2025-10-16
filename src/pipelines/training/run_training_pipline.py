@@ -4,7 +4,9 @@ from pipelines.preprocessing.run_preprocessing_pipeline import (
     run_preprocessing_pipeline,
 )
 from models.ensemble_models.experiments.run_ensemble import run_ensemble
-from models.ensemble_models.evaluation.run_evalution_for_best_model import run_evaluation_for_best_model
+from models.ensemble_models.evaluation.run_evalution_for_best_model import (
+    run_evaluation_for_best_model,
+)
 from models.lstm.experiments.run_lstm import run_lstm
 from models.lstm.validation.evaluate import run_lstm_evaluation
 
@@ -18,7 +20,6 @@ from pipelines.processing.features.temporal_features import TemporalFeatures
 from pipelines.processing.processing_steps.data_augmentation import DataAugmentation
 from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
 from pipelines.processing.processing_pipeline import ProcessingPipeline
-
 
 
 BASE_DIR = Path(__file__).resolve().parents[3]
@@ -51,9 +52,9 @@ def run_preprocessing():
     )
     print("[1] Preprocessing complete.\n")
 
+
 def run_processing():
     print("[2] Running processing for train, test and val datasets...")
-
 
     split_to_paths = {
         "train": {
@@ -70,13 +71,12 @@ def run_processing():
         },
     }
 
-
     steps = [
         BasicFeatures(on=False),
         TemporalFeatures(on=False),
         Interpolation(on=True),
         DataAugmentation(on=False),
-        CalculateIndices(on=True), #TODO Muss auf True sein 
+        CalculateIndices(on=True),  # TODO Muss auf True sein
         # AdjustLabels(on=False),
         # DetectDisturbedTrees(on=False),
     ]
@@ -104,7 +104,6 @@ def run_ensemble_models():
     print("[3] Ensemble training complete.\n")
 
 
-
 def run_lstm_models():
     print("[4] Training LSTM model...")
     run_lstm(**paths, batch_size=64, lr=1e-3, max_epochs=250)
@@ -115,10 +114,11 @@ def run_lstm_models():
 def run_training_pipeline():
     print("=== Starting Training Pipeline ===")
     run_preprocessing()
-    run_processing() 
+    run_processing()
     run_ensemble_models()
-    #run_lstm_models()
+    # run_lstm_models()
     print("=== Training Pipeline Finished ===")
+
 
 if __name__ == "__main__":
     run_training_pipeline()

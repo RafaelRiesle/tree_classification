@@ -22,7 +22,6 @@ def load_data(*paths: Path):
     return dataframes
 
 
-
 def get_id_sample(df, id_col="id", time_col="time", n_ids=40):
     """
     Returns a subset of the DataFrame with up to `n_ids` unique IDs.

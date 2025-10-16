@@ -5,6 +5,7 @@ from tqdm_joblib import tqdm_joblib
 from tqdm import tqdm
 from general_utils.constants import spectral_bands, indices
 
+
 class TimeSeriesAggregator:
     DEFAULT_FEATURES = spectral_bands + indices
 
@@ -55,7 +56,9 @@ class TimeSeriesAggregator:
         df["time_num"] = (df["time"] - df["time"].min()).dt.days
         groups = list(df.groupby("id"))
 
-        with tqdm_joblib(tqdm(desc="Processing IDs", total=len(groups))) as progress_bar:
+        with tqdm_joblib(
+            tqdm(desc="Processing IDs", total=len(groups))
+        ) as progress_bar:
             res = Parallel(n_jobs=self.n_jobs)(
                 delayed(self.process_id)(i, g) for i, g in groups
             )
@@ -65,8 +68,11 @@ class TimeSeriesAggregator:
     def aggregate_to_single_row_keep_windows(self, df_windows):
         df_windows = df_windows.copy()
         df_windows["window_idx"] = df_windows.groupby("id").cumcount()
-        df_pivot = df_windows.pivot_table(index=["id","species"], columns="window_idx")
-        df_pivot.columns = [f"{col[0]}_w{col[1]}" if isinstance(col, tuple) else col for col in df_pivot.columns]
+        df_pivot = df_windows.pivot_table(index=["id", "species"], columns="window_idx")
+        df_pivot.columns = [
+            f"{col[0]}_w{col[1]}" if isinstance(col, tuple) else col
+            for col in df_pivot.columns
+        ]
         return df_pivot.reset_index()
 
     def run(self, df):

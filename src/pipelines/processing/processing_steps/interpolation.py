@@ -14,7 +14,7 @@ class Interpolation:
             lambda x: x.interpolate(method=method)
         )
         return df
-    
+
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         if not self.on:
             return df
