@@ -1,4 +1,5 @@
 import torch
+from pathlib import Path
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import (
     ModelCheckpoint,
@@ -7,6 +8,10 @@ from pytorch_lightning.callbacks import (
 )
 from models.lstm.lstm_utils.data_module import SpeciesDataModule
 from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
+
+
+BASE_DIR = Path(__file__).parents[4]
+RESULTS_DIR = BASE_DIR / "data/lstm_training/results"
 
 
 class LSTMTrainer:
@@ -40,7 +45,7 @@ class LSTMTrainer:
     def train(self):
         checkpoint_callback = ModelCheckpoint(
             monitor="val_loss",
-            dirpath="trained_model/",
+            dirpath=RESULTS_DIR,
             filename="species_model-{epoch:02d}-{val_loss:.4f}",
             save_top_k=1,
             mode="min",
@@ -57,6 +62,7 @@ class LSTMTrainer:
                 LearningRateMonitor(logging_interval="epoch"),
                 EarlyStopping(monitor="val_acc", patience=10),
             ],
+            default_root_dir=RESULTS_DIR
         )
 
         trainer.fit(self.model, datamodule=self.data_module)
