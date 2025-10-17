@@ -42,7 +42,7 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=100,
+        sample_size=1000,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
@@ -73,7 +73,7 @@ def run_processing():
 
     steps = [
         BasicFeatures(on=False),
-        TemporalFeatures(on=False),
+        TemporalFeatures(on=True),
         Interpolation(on=True),
         DataAugmentation(on=False),
         CalculateIndices(on=True),  # TODO Muss auf True sein
@@ -115,7 +115,7 @@ def run_training_pipeline():
     print("=== Starting Training Pipeline ===")
     run_preprocessing()
     run_processing()
-    run_ensemble_models()
+    # run_ensemble_models()
     # run_lstm_models()
     print("=== Training Pipeline Finished ===")
 

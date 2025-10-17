@@ -3,7 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from models.lstm.pipeline.pipeline import prepare_data
 from models.lstm.lstm_utils.support_function import weighted_accuracy, get_predictions
-from models.lstm.lstm_utils.species_predictor import SpeciesPredictor
+from models.lstm.lstm_utils.predictor_species import SpeciesPredictor
 from models.lstm.lstm_utils.species_data_module import SpeciesDataModule
 
 
