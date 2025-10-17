@@ -12,7 +12,8 @@ from pipelines.processing.features.temporal_features import TemporalFeatures
 from pipelines.processing.processing_steps.data_augmentation import DataAugmentation
 from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
 from pipelines.processing.processing_pipeline import ProcessingPipeline
-
+from pipelines.processing.processing_steps.aggregation import TimeSeriesAggregate
+from pipelines.processing.processing_steps.interpolate_nans import InterpolateNaNs
 
 BASE_DIR = Path(__file__).resolve().parents[3]
 RAW_DIR = BASE_DIR / "data/raw"
@@ -28,7 +29,7 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=100,
+        sample_size=3000,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
@@ -38,18 +39,19 @@ def run_preprocessing():
     )
     print("[1] Preprocessing complete.\n")
 
-
 def run_processing():
     print("[2] Running processing for train, test, val sets...")
 
     steps = [
-        BasicFeatures(on=True),
+        BasicFeatures(on=False),
+        TimeSeriesAggregate(on=True, freq=2, method="mean"),
+        CalculateIndices(on=True),
+        InterpolateNaNs(on=True, method="quadratic"),
         TemporalFeatures(on=True),
-        Interpolation(on=True),
         DataAugmentation(on=False),
-        CalculateIndices(on=True),  # TODO: Must be True
-        AdjustLabels(on=False),
+        Interpolation(on=True),
         DetectDisturbedTrees(on=False),
+        AdjustLabels(on=False),
     ]
 
     for split in ["train", "test", "val"]:
