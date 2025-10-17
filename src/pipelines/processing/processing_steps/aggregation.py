@@ -1,7 +1,8 @@
 import pandas as pd
 
 class TimeSeriesAggregate:
-    def __init__(self, on=True, freq=1, method="median"):
+    # TODO: Aggregation only for > threshold
+    def __init__(self, on=True, freq=2, method="median"):
         self.on = on
         self.freq = freq
         self.method = method
