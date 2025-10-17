@@ -32,3 +32,11 @@ src/
 ├── data/
 │   └── processed/                       # Processed CSV datasets
 └── README.md
+
+
+## Usage
+Run the full pipeline
+
+``` python models/lstm/pipeline/run_lstm_training.py ```
+
+The main script runs data processing, LSTM training, and evaluation:
