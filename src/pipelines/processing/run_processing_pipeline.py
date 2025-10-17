@@ -29,7 +29,7 @@ def run_preprocessing():
         data_path=RAW_DIR / "raw_trainset.csv",
         splits_output_path=RAW_DIR / "splits",
         preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=3000,
+        sample_size=300,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,

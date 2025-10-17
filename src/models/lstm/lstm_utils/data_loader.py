@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 class CSVDataLoader:
@@ -28,4 +29,6 @@ class CSVDataLoader:
             .sort_values(["id", "time"])
             .drop_duplicates()
             .reset_index(drop=True)
+            .replace([np.inf, -np.inf], np.nan)
+            .fillna(0)
         )

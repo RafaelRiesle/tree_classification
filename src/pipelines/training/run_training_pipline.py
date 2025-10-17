@@ -8,7 +8,7 @@ from models.ensemble_models.evaluation.run_evalution_for_best_model import (
     run_evaluation_for_best_model,
 )
 from models.lstm.experiments.run_lstm import run_lstm
-from models.lstm.validation.evaluate import run_lstm_evaluation
+from models.lstm.evaluation.evaluate import run_lstm_evaluation
 
 from pipelines.processing.processing_steps.interpolation import Interpolation
 from pipelines.processing.processing_steps.detect_disturbed_trees import (
