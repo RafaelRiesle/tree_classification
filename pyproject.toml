@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "tree_classification_awp2"
 version = "2025.0.0"
@@ -28,6 +32,8 @@ dependencies = [
   "tqdm_joblib"
 ]
 
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "Q"]

@@ -14,7 +14,7 @@ from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
 from pipelines.processing.processing_pipeline import ProcessingPipeline
 from pipelines.processing.processing_steps.aggregation import TimeSeriesAggregate
 from pipelines.processing.processing_steps.interpolate_nans import InterpolateNaNs
-
+from pipelines.processing.processing_steps.smoothing import Smooth
 BASE_DIR = Path(__file__).resolve().parents[3]
 RAW_DIR = BASE_DIR / "data/raw"
 PREPROCESSED_DIR = BASE_DIR / "data/preprocessed"
@@ -49,6 +49,7 @@ def run_processing():
         InterpolateNaNs(on=True, method="quadratic"),
         TemporalFeatures(on=True),
         DataAugmentation(on=False),
+        Smooth(on=False),
         Interpolation(on=True),
         DetectDisturbedTrees(on=False),
         AdjustLabels(on=False),
