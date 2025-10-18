@@ -56,19 +56,48 @@ class CalculateIndices:
     def calculate_dvi(df: pd.DataFrame):
         return df["b8"] - df["b4"]
 
+    @staticmethod
+    def calculate_ndmi(df: pd.DataFrame):
+        return (df["b8"] - df["b11"]) / (df["b8"] + df["b11"])
+
+    @staticmethod
+    def calculate_nbr(df: pd.DataFrame):
+        return (df["b8"] - df["b12"]) / (df["b8"] + df["b12"])
+
+    @staticmethod
+    def calculate_ndwi(df: pd.DataFrame):
+        return (df["b3"] - df["b8"]) / (df["b3"] + df["b8"])
+
+    @staticmethod
+    def calculate_mtci(df: pd.DataFrame):
+        return (df["b6"] - df["b5"]) / (df["b6"] - df["b4"])
+
+    @staticmethod
+    def calculate_rendvi(df: pd.DataFrame):
+        return (df["b7"] - df["b5"]) / (df["b7"] + df["b5"])
+
     def run(self, df: pd.DataFrame):
         if not self.on:
             return df
 
         df = df.copy()
-        df["ndvi"] = CalculateIndices.calculate_ndvi(df)
-        df["gndvi"] = CalculateIndices.calculate_gndvi(df)
-        df["wdvi"] = CalculateIndices.calculate_wdvi(df)
-        df["tndvi"] = CalculateIndices.calculate_tndvi(df)
-        df["savi"] = CalculateIndices.calculate_savi(df)
-        df["ipvi"] = CalculateIndices.calculate_ipvi(df)
-        df["mcari"] = CalculateIndices.calculate_mcari(df)
-        df["reip"] = CalculateIndices.calculate_reip(df)
-        df["masvi2"] = CalculateIndices.calculate_masvi2(df)
-        df["dvi"] = CalculateIndices.calculate_dvi(df)
+
+        df["ndvi"] = self.calculate_ndvi(df)
+        df["gndvi"] = self.calculate_gndvi(df)
+        df["wdvi"] = self.calculate_wdvi(df)
+        df["tndvi"] = self.calculate_tndvi(df)
+        df["savi"] = self.calculate_savi(df)
+        df["ipvi"] = self.calculate_ipvi(df)
+        df["mcari"] = self.calculate_mcari(df)
+        df["reip"] = self.calculate_reip(df)
+        df["masvi2"] = self.calculate_masvi2(df)
+        df["dvi"] = self.calculate_dvi(df)
+
+        # Sentinel-2 Indizes
+        df["ndmi"] = self.calculate_ndmi(df)
+        df["nbr"] = self.calculate_nbr(df)
+        df["ndwi"] = self.calculate_ndwi(df)
+        df["mtci"] = self.calculate_mtci(df)
+        df["rendvi"] = self.calculate_rendvi(df)
+
         return df

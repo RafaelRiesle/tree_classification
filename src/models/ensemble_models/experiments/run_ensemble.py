@@ -16,7 +16,7 @@ def define_models():
     return [
         (
             RandomForestClassifier,
-            {"n_estimators": [250], "max_depth": [15], "min_samples_split": [5]},
+            {"n_estimators": [2], "max_depth": [15], "min_samples_split": [5]},
         ),
         # (
         #     xgb.XGBClassifier,

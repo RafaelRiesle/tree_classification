@@ -12,7 +12,6 @@ class TemporalFeatures:
 
     def month_and_season(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
-
         df["month_num"] = df["time"].dt.month
         df["year"] = df["time"].dt.year
 
@@ -33,10 +32,18 @@ class TemporalFeatures:
         df["date_diff"] = df.groupby("id")["time"].diff().dt.days
         return df
 
+    def growing_season(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        if "month_num" not in df.columns:
+            df["month_num"] = df["time"].dt.month
+        df["is_growing_season"] = df["month_num"].between(4, 10).astype(int)
+        return df
+
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         if not self.on:
             return df
         df = self.month_and_season(df)
         df = self.month_sin_cos(df)
         df = self.date_diff(df)
+        df = self.growing_season(df)
         return df

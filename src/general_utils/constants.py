@@ -10,6 +10,11 @@ indices = [
     "reip",
     "masvi2",
     "dvi",
+    "ndmi",
+    "nbr",
+    "ndwi",
+    "mtci",
+    "rendvi",
 ]
 
 COLOR = "royalblue"
