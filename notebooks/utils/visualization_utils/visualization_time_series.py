@@ -27,7 +27,9 @@ def plot_date_diff_distribution(df, column="date_diff", bins=20, color=COLOR):
     plt.show()
 
 
-def plot_timeseries_oneid(df, id, col, df_yearly = None, yearly_mean=True, df_scaled = True):
+def plot_timeseries_oneid(
+    df, id, col, df_yearly=None, yearly_mean=True, df_scaled=True
+):
     df_sub = df[df["id"] == id]
 
     plt.plot(df_sub["time"], df_sub[col], label="all data")
@@ -38,12 +40,12 @@ def plot_timeseries_oneid(df, id, col, df_yearly = None, yearly_mean=True, df_sc
             df_yearly_sub["year"].astype(str) + "-01-01"
         )
         plt.plot(df_yearly_sub["year_dt"], df_yearly_sub[col], label="Yearly mean")
-    
+
     if df_scaled:
         plt.title(f"{col} (normalized) Timeseries for ID {id}")
     else:
         plt.title(f"{col} Timeseries for ID {id}")
-    
+
     plt.xlabel("Time")
     plt.ylabel(col)
     plt.legend()

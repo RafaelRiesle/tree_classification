@@ -8,6 +8,7 @@ from pipelines.processing.features.statistical_features import StatisticalFeatur
 
 bands_and_indices = spectral_bands + indices
 
+
 class AdjustLabels:
     def __init__(self, on=True):
         self.on = on
@@ -32,15 +33,18 @@ class AdjustLabels:
         df_train = self.stats.calculate_keyfigures_per_id(df, self.bands_and_indices)
 
         df_disturbed = df[df["species"] == "disturbed"]
-        df_disturbed_before = df_disturbed[df_disturbed["time"].dt.year < df_disturbed["disturbance_year"]]
+        df_disturbed_before = df_disturbed[
+            df_disturbed["time"].dt.year < df_disturbed["disturbance_year"]
+        ]
 
-        df_spruce_pine = df_train[df_train["species"].isin(["Norway_spruce", "Scots_pine"])]
+        df_spruce_pine = df_train[
+            df_train["species"].isin(["Norway_spruce", "Scots_pine"])
+        ]
         df_spruce_pine = df_spruce_pine.drop(columns="id")
 
-        df_spruce_pine.loc[:, "species"] = df_spruce_pine["species"].map({
-            "Norway_spruce": 0,
-            "Scots_pine": 1
-        })
+        df_spruce_pine.loc[:, "species"] = df_spruce_pine["species"].map(
+            {"Norway_spruce": 0, "Scots_pine": 1}
+        )
 
         X = df_spruce_pine.drop("species", axis=1)
         y = df_spruce_pine["species"]
@@ -69,28 +73,28 @@ class AdjustLabels:
         )
 
         ids = df_disturbed_prepared["id"]
-        X_disturbed = df_disturbed_prepared.drop(columns=["species", "id"], errors="ignore")
+        X_disturbed = df_disturbed_prepared.drop(
+            columns=["species", "id"], errors="ignore"
+        )
         y_pred_disturbed_class = xgb_model.predict(X_disturbed)
 
-        df_disturbed_labels = pd.DataFrame({
-            "id": ids,
-            "species": y_pred_disturbed_class
-        })
+        df_disturbed_labels = pd.DataFrame(
+            {"id": ids, "species": y_pred_disturbed_class}
+        )
 
-        label_map = {
-            0: "Norway_spruce_disturbed",
-            1: "Scots_pine_disturbed"
-        }
+        label_map = {0: "Norway_spruce_disturbed", 1: "Scots_pine_disturbed"}
         df_disturbed_labels["species"] = df_disturbed_labels["species"].map(label_map)
 
         df_updated = df.merge(
             df_disturbed_labels[["id", "species"]],
             on="id",
             how="left",
-            suffixes=("", "_pred")
+            suffixes=("", "_pred"),
         )
 
-        df_updated.loc[df_updated["species_pred"].notnull(), "species"] = df_updated["species_pred"]
+        df_updated.loc[df_updated["species_pred"].notnull(), "species"] = df_updated[
+            "species_pred"
+        ]
         df_updated = df_updated.drop(columns=["species_pred"], errors="ignore")
 
         return df_updated
