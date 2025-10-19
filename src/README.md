@@ -117,11 +117,15 @@ Exporting trained models and performance reports for further analysis.
 
 ## Roadmap
 
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
+- [x] Ensemble Models
+    - [x] Preprocessing
+    - [x] Processing
+    - [x] Experiments
+    - [x] Evaluation
+- [x] LSTM
+    - [x] Preprocessing
+    - [x] Processing
+    - [x] Experiments
+    - [x] Evaluation
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
