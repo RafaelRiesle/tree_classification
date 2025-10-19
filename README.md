@@ -4,12 +4,10 @@
     <img src="doc/assets/images/sentinel.jpg", alt="Logo"  width = 400>
 </a>
     <h3 align="center">Tree Species Classification in Germany</h3>
+</div>
 
 <details>
 <summary>Table of Contents</summary>
-
-
-
 <ol>
     <li>
     <a href="#about-the-project">About The Project</a>
@@ -26,8 +24,7 @@
 </ol>
 </details>
 
-</div>
-
+---
 
 
 ## About The Project
@@ -44,6 +41,7 @@ The goal of this project is to develop robust machine learning methods capable o
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+---
 
 ## Getting Started
 
@@ -53,10 +51,17 @@ Follow the instructions below to set up a local development environment for this
 
 You can install the project dependencies using either pip or uv:
 
-pip: ```python -m pip install -e .```
+pip: 
+```bash
+python -m pip install -e .
+```
 
-uv: ```uv pip install -e .```
+uv:
+```bash
+uv pip install -e .
+```
 
+---
 
 ## Usage
 
@@ -66,6 +71,7 @@ _For more examples, please refer to the [Documentation](doc/index.md)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+---
 
 ## Roadmap
 
@@ -81,9 +87,11 @@ _For more examples, please refer to the [Documentation](doc/index.md)_
 - [ ] Data Reduction
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+---
+
 ## Contact
-Evelyn Rempel - reev1011@h-ka.de
-Alexandru Cozma - coal1014@h-ka.de
-Rafael Riesle - rira1011@h-ka.de
+- Evelyn Rempel - reev1011@h-ka.de
+- Alexandru Cozma - coal1014@h-ka.de
+- Rafael Riesle - rira1011@h-ka.de
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
