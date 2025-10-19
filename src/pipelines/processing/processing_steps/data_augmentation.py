@@ -10,10 +10,11 @@ warnings.filterwarnings("ignore")
 
 
 class DataAugmentation:
-    def __init__(self, on=True, scale=0.002, drift=0.01):
+    def __init__(self, on=True, scale=0.002, drift=0.01, threshold=150):
         self.on = on
         self.scale = scale
         self.drift = drift
+        self.threshold = threshold
 
     def _make_augmenter(self):
         return Drift(max_drift=self.drift) + AddNoise(scale=self.scale)
@@ -96,6 +97,18 @@ class DataAugmentation:
         return df_final
 
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Run augmentation only for IDs with fewer samples than threshold."""
         if not self.on:
             return df
-        return self.augment(df)
+        
+        id_counts = df.groupby("id").size()
+        ids_to_augment = id_counts[id_counts < self.threshold].index
+        ids_no_augment = id_counts[id_counts >= self.threshold].index
+
+        df_to_augment = df[df["id"].isin(ids_to_augment)]
+        df_no_augment = df[df["id"].isin(ids_no_augment)]
+
+        df_augmented = self.augment(df_to_augment)
+        df_final = pd.concat([df_no_augment, df_augmented], ignore_index=True)
+
+        return df_final

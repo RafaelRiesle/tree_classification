@@ -1,18 +1,28 @@
 import pandas as pd
 
-
 class TimeSeriesAggregate:
-    # TODO: Aggregation only for > threshold
-    def __init__(self, on=True, freq=2, method="median"):
+    def __init__(self, on=True, freq=2, method="mean"):
+        """
+        Parameters
+        ----------
+        on : bool
+            Whether to run aggregation.
+        freq : int
+            Frequency in weeks for resampling.
+        method : str
+            Aggregation method ('mean', 'median', 'sum', 'min', 'max')
+        """
         self.on = on
         self.freq = freq
         self.method = method
 
-    # TODO: use method instead of mean
     def resample_by_freq(self, group, freq):
         group = group.set_index("time").sort_index()
-        resampled = group.resample(f"{freq}W-MON").mean(numeric_only=True)
-        resampled = resampled.reset_index()
+        resampled = (
+            group.resample(f"{freq}W-MON")
+            .agg(self.method, numeric_only=True)
+            .reset_index()
+        )
         resampled["id"] = group["id"].iloc[0]
         return resampled
 

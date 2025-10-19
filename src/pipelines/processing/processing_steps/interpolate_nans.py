@@ -12,7 +12,7 @@ class InterpolateNaNs:
         group[numeric_cols] = group[numeric_cols].interpolate(method=self.method)
         return group
 
-    # TODO: interpolation only for size(id) > threshold
+    # TODO: interpolation only for not augmented data (or not?)
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         if not self.on:
             return df
