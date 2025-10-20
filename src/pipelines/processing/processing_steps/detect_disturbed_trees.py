@@ -1,10 +1,11 @@
 import pandas as pd
+import numpy as np
 from scipy.stats import linregress
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
-from features.basic_features import BasicFeatures
+from pipelines.processing.features.basic_features import BasicFeatures
 
 
 # TODO sys & os entfernen
@@ -157,14 +158,10 @@ class DetectDisturbedTrees:
         df_healthy = full_df[~full_df["is_disturbed"]].copy()
         df_pred = self.apply_model(model, df_healthy)
 
-        df_disturbed = full_df[full_df["is_disturbed"]].copy()
-        df_disturbed["is_disturbed_pred"] = True
-
-        df_all_pred = pd.concat([df_pred, df_disturbed], ignore_index=True)
-        df_final = df.merge(
-            df_all_pred[["id", "is_disturbed_pred"]], on="id", how="left"
-        )
-
-        df_final = self.change_disturbed_labels(df_final)
+        disturbed_ids = df_pred.loc[df_pred["is_disturbed_pred"] == True, "id"].unique()
+        n_deleted = len(disturbed_ids)
+        print(f"{n_deleted} ids have been removed due to predicted disturbance")
+        
+        df_final = df[~df["id"].isin(disturbed_ids)].copy()
 
         return df_final
