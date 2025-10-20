@@ -3,7 +3,7 @@ from pipelines.preprocessing.run_preprocessing_pipeline import (
     run_preprocessing_pipeline,
 )
 from pipelines.processing.processing_steps.interpolation import Interpolation
-from pipelines.processing.processing_steps.detect_disturbed_trees import (
+from pipelines.processing.data_reduction.detect_disturbed_trees import (
     DetectDisturbedTrees,
 )
 from pipelines.processing.features.spectral_indices import CalculateIndices

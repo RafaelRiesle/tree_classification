@@ -16,7 +16,7 @@ from pipelines.processing.processing_steps.interpolate_nans import InterpolateNa
 from pipelines.processing.processing_steps.interpolation import Interpolation
 from pipelines.processing.processing_steps.data_augmentation import DataAugmentation
 from pipelines.processing.processing_steps.smoothing import Smooth
-from pipelines.processing.processing_steps.detect_disturbed_trees import (
+from pipelines.processing.data_reduction.detect_disturbed_trees import (
     DetectDisturbedTrees,
 )
 from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
