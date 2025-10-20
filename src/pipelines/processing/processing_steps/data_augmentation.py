@@ -119,4 +119,5 @@ class DataAugmentation:
         df_augmented = self.augment(df_to_augment)
         df_final = pd.concat([df_no_augment, df_augmented], ignore_index=True)
 
+        df_final["id"] = df_final["id"].astype(str)
         return df_final 
