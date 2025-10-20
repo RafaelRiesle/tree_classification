@@ -5,6 +5,9 @@ from general_utils.utility_functions import load_data, get_id_sample
 from pipelines.preprocessing.preprocessing_pipeline_utils.sits_outlier_cleaner import (
     SITSOutlierCleaner,
 )
+from pipelines.preprocessing.preprocessing_pipeline_utils.data_reduction import (
+    TimeSeriesFilter,
+)
 from pipelines.preprocessing.preprocessing_pipeline_utils.train_test_split import (
     DatasetSplitLoader,
 )
@@ -109,10 +112,16 @@ def run_preprocessing_pipeline(
     remove_outliers: bool = True,
     contamination: float = 0.05,
     force_split_creation: bool = False,
+    max_median_diff_days: int = 14,
 ):
     """Run the full preprocessing pipeline with configurable options."""
 
     df = load_data(data_path)
+
+    print(f"[Preprocessing] Filtering time series with median gaps > {max_median_diff_days} days...")
+    ts_filter = TimeSeriesFilter(max_median_diff_days=max_median_diff_days)
+    df = ts_filter.fit_transform(df)
+    print(f"✓ Remaining IDs after filtering: {df['id'].nunique()}")
 
     splits = load_or_create_splits(
         df,
@@ -156,4 +165,5 @@ if __name__ == "__main__":
         remove_outliers=False,
         contamination=0.05,
         force_split_creation=True,
+        max_median_diff_days = 18,
     )

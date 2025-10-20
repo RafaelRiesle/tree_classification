@@ -85,12 +85,20 @@ class DataAugmentation:
         for species, ids_to_process in tqdm.tqdm(balanced_ids.items(), desc="Augmenting species"):
             species_df = df[df["species"] == species]
             augmenter = self._make_augmenter()
+            id_augmentation_counter = {}
 
             for tree_id in ids_to_process:
                 df_species = species_df[species_df["id"] == tree_id]
                 df_aug = self.resample_time_series(df_species, spectral_bands, max_len, augmenter, start_time)
-                if list(ids_to_process).count(tree_id) > 1:
-                    df_aug["id"] = f"{tree_id}_aug"
+                is_duplicated = list(ids_to_process).count(tree_id) > 1
+                
+                if is_duplicated:
+                    count = id_augmentation_counter.get(tree_id, 0) + 1
+                    id_augmentation_counter[tree_id] = count
+                    df_aug["id"] = f"{tree_id}_aug_{count}"
+                else:
+                    pass
+
                 augmented_dfs.append(df_aug)
 
         df_final = pd.concat(augmented_dfs, ignore_index=True)
@@ -111,4 +119,4 @@ class DataAugmentation:
         df_augmented = self.augment(df_to_augment)
         df_final = pd.concat([df_no_augment, df_augmented], ignore_index=True)
 
-        return df_final
+        return df_final 
