@@ -5,7 +5,8 @@ class TimeSeriesFilter:
     Removes time series with large median time gaps.
     """
 
-    def __init__(self, time_col="time", id_col="id", max_median_diff_days=18):
+    def __init__(self, time_col="time", id_col="id", max_median_diff_days=18, on=True):
+        self.on = on
         self.time_col = time_col
         self.id_col = id_col
         self.max_median_diff_days = max_median_diff_days
@@ -36,5 +37,7 @@ class TimeSeriesFilter:
             raise RuntimeError("Call fit() before transform().")
         return df[df[self.id_col].isin(self.valid_ids_)].copy()
 
-    def fit_transform(self, df: pd.DataFrame):
-        return self.fit(df).transform(df)
+    def run(self, df: pd.DataFrame):
+        if self.on:
+            return self.fit(df).transform(df)
+        return df
