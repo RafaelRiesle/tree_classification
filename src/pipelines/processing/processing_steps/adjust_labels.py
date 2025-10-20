@@ -33,9 +33,9 @@ class AdjustLabels:
         df_train = self.stats.calculate_keyfigures_per_id(df, self.bands_and_indices)
 
         df_disturbed = df[df["species"] == "disturbed"]
-        df_disturbed_before = df_disturbed[
-            df_disturbed["time"].dt.year < df_disturbed["disturbance_year"]
-        ]
+        # df_disturbed_before = df_disturbed[
+        #     df_disturbed["time"].dt.year < df_disturbed["disturbance_year"]
+        # ] # TODO: check if this is needed, because class OldDisturbancePruner does basically the same
 
         df_spruce_pine = df_train[
             df_train["species"].isin(["Norway_spruce", "Scots_pine"])
@@ -69,7 +69,7 @@ class AdjustLabels:
         # print(classification_report(y_test, y_pred))
 
         df_disturbed_prepared = self.stats.calculate_keyfigures_per_id(
-            df_disturbed_before, self.bands_and_indices
+            df_disturbed, self.bands_and_indices
         )
 
         ids = df_disturbed_prepared["id"]

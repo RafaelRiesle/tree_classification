@@ -15,6 +15,7 @@ from pipelines.processing.processing_steps.aggregation import TimeSeriesAggregat
 from pipelines.processing.processing_steps.interpolate_nans import InterpolateNaNs
 from pipelines.processing.processing_steps.interpolation import Interpolation
 from pipelines.processing.processing_steps.data_augmentation import DataAugmentation
+from pipelines.processing.processing_steps.smoothing import Smooth
 from pipelines.processing.processing_steps.detect_disturbed_trees import (
     DetectDisturbedTrees,
 )
@@ -98,6 +99,7 @@ class TrainingPipeline:
         steps = [
             BasicFeatures(on=False),
             TimeSeriesAggregate(on=True, freq=2, method="mean"),
+            Smooth(on=True),
             CalculateIndices(on=True),
             InterpolateNaNs(on=True, method="quadratic"),
             TemporalFeatures(on=True),

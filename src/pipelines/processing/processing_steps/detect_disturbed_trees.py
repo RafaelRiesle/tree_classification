@@ -4,6 +4,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
+from features.basic_features import BasicFeatures
+
+
 # TODO sys & os entfernen
 import sys
 import os
@@ -19,6 +22,9 @@ class DetectDisturbedTrees:
         self.random_state = random_state
         self.bands_and_indices = spectral_bands + indices
         self.model = None
+
+        self.basic_features = BasicFeatures(on=on)
+
 
     def scale_data(self, df):
         df_scaled = df.copy()
@@ -75,10 +81,11 @@ class DetectDisturbedTrees:
 
         healthy = healthy.copy()
         healthy["combi_top_features"] = healthy[top_features].mean(axis=1)
+        subset_size = min(10000, len(healthy)) # TODO: analyse why 10.000 not possible 
         healthy_sub = (
             healthy.sort_values(by="combi_top_features")
             .head(20000)
-            .sample(n=10000, random_state=self.random_state)
+            .sample(n=subset_size, random_state=self.random_state)
         )
 
         return (
@@ -139,7 +146,8 @@ class DetectDisturbedTrees:
     def run(self, df):
         if not self.on:
             return df
-
+        
+        df = self.basic_features.add_disturbance_flag(df)
         full_df = self.prepare_data(df)
         train_df = self.get_balanced_train_data(full_df)
         model = self.train_model(train_df)

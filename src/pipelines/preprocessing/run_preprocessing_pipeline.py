@@ -109,6 +109,7 @@ def run_preprocessing_pipeline(
     remove_outliers: bool = True,
     contamination: float = 0.05,
     force_split_creation: bool = False,
+    max_median_diff_days: int = 14,
 ):
     """Run the full preprocessing pipeline with configurable options."""
 
