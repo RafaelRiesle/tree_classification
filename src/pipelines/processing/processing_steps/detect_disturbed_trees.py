@@ -35,6 +35,7 @@ class DetectDisturbedTrees:
         return df_scaled
 
     def get_yearly_data(self, df_scaled):
+        df_scaled["year"] = df_scaled["time"].dt.year
         return (
             df_scaled.groupby(["id", "year"])[self.bands_and_indices]
             .mean()
@@ -111,8 +112,8 @@ class DetectDisturbedTrees:
             eval_metric="logloss",
         )
         model.fit(X_train, y_train)
-        print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
-        print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
+        # print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
+        # print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
         return model
 
     def apply_model(self, model, df_std_slope):

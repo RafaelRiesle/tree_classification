@@ -19,16 +19,10 @@ class BasicFeatures:
             df = df.drop(columns=["doy"])
         return df
     
-    def id_to_string(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df.copy()
-        df["id"] = df["id"].astype(str)
-        return df
 
     def run(self, df):
         if not self.on:
             return df
         df = self.add_disturbance_flag(df)
         df = self.delete_doy(df)
-        df = self.id_to_string(df)
-        # df = df.sample(n=1000, random_state=42)  # TODO: entfernen
         return df
