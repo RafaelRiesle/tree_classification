@@ -30,4 +30,5 @@ class BasicFeatures:
         df = self.add_disturbance_flag(df)
         df = self.delete_doy(df)
         df = self.id_to_string(df)
+        # df = df.sample(n=1000, random_state=42)  # TODO: entfernen
         return df

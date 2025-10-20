@@ -110,8 +110,8 @@ class DetectDisturbedTrees:
             eval_metric="logloss",
         )
         model.fit(X_train, y_train)
-        # print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
-        # print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
+        print("Confusion Matrix:\n", confusion_matrix(y_test, model.predict(X_test)))
+        print("\nClassification Report:\n", classification_report(y_test, model.predict(X_test)))
         return model
 
     def apply_model(self, model, df_std_slope):
