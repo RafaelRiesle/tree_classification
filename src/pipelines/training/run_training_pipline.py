@@ -30,7 +30,7 @@ class TrainingPipeline:
     def __init__(
         self,
         base_dir: Path = None,
-        sample_size: int = 3000,
+        sample_size: int = 300,
         train_ratio: float = 0.7,
         test_ratio: float = 0.2,
         val_ratio: float = 0.1,

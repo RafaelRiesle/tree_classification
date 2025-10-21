@@ -16,19 +16,19 @@ def define_models():
     return [
         (
             RandomForestClassifier,
-            {"n_estimators": [100, 200],
-              "max_depth": [10, 20],
-            "min_samples_split": [1, 2],
+            {"n_estimators": [100],
+              "max_depth": [10],
+            "min_samples_split": [3],
               "max_features": ["log2", "sqrt"]}
         ),
-        (
-            xgb.XGBClassifier,
-            {
-                "n_estimators": [100, 500],
-                "learning_rate": [0.1],
-                "max_depth": [10, 20],
-            },
-        ),
+        # (
+        #     xgb.XGBClassifier,
+        #     {
+        #         "n_estimators": [100, 500],
+        #         "learning_rate": [0.1],
+        #         "max_depth": [10, 20],
+        #     },
+        # ),
     ]
 
 
