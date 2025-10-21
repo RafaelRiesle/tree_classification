@@ -1,6 +1,9 @@
 import pandas as pd
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+from datetime import datetime
+import joblib
+from pathlib import Path
 from models.ensemble_models.ensemble_utils.ensemble_model_manager import (
     EnsembleModelManager,
 )
@@ -95,6 +98,8 @@ class GenericPipeline:
             feat_imp_df = self.ensemble.extract_feature_importances(model, feature_names)
             feat_imp = feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
 
+            n_samples, n_features = X_train.shape
+
             # Kombinierte Metriken in einer JSON
             combined_metrics = {
                 "train": train_metrics,
@@ -103,10 +108,6 @@ class GenericPipeline:
                 "feature_importances": feat_imp,
             }
 
-            # Modelldatei speichern
-            from datetime import datetime
-            import joblib
-            from pathlib import Path
 
             model_file = self.ensemble.results_dir / f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
             joblib.dump(model, model_file)
@@ -118,6 +119,8 @@ class GenericPipeline:
                 "hyperparams": hyperparams,
                 "metrics": combined_metrics,
                 "features": list(feature_names),
+                "n_samples": n_samples,
+                "n_features": n_features,
                 "model_file": str(model_file),
             }
 

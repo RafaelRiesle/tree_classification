@@ -24,9 +24,9 @@ def define_models():
         (
             xgb.XGBClassifier,
             {
-                "n_estimators": [300, 500],
-                "learning_rate": [0.05, 0.1],
-                "max_depth": [6, 10],
+                "n_estimators": [100, 500],
+                "learning_rate": [0.1],
+                "max_depth": [10, 20],
             },
         ),
     ]
