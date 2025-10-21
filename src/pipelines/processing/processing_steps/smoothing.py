@@ -6,12 +6,18 @@ class Smooth:
         self.on = on
 
     def avg_smoothing(self, df: pd.DataFrame, window=3) -> pd.DataFrame:
-        """Smoothing Spectral Bands"""
+        """
+        Apply rolling mean smoothing to spectral bands,
+        separately for each ID, sorted by time.
+        """
+        df = df.sort_values(['id', 'time']).reset_index(drop=True)
+
         df_smooth = (
-            df[spectral_bands]
-            .rolling(window=window)
+            df.groupby('id', group_keys=False)[spectral_bands]
+            .rolling(window=window, min_periods=1)
             .mean()
             .add_suffix('_smooth')
+            .reset_index(drop=True)
         )
 
         df = pd.concat([df, df_smooth], axis=1)
@@ -20,5 +26,4 @@ class Smooth:
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         if not self.on:
             return df
-        df = self.avg_smoothing(df)
-        return df
+        return self.avg_smoothing(df)
