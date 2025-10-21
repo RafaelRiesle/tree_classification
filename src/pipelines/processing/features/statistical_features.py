@@ -1,8 +1,5 @@
 import pandas as pd
 
-# to do: e.g. mean, std, kurtosis, slope etc.
-
-
 class StatisticalFeatures:
     def calculate_keyfigures_per_id(self, df, bands_and_indices):
         """

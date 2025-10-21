@@ -6,16 +6,9 @@ from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
 
 from pipelines.processing.features.basic_features import BasicFeatures
-
-
-# TODO sys & os entfernen
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 from general_utils.constants import spectral_bands, indices
 
-
+# TODO: Model anpassen, dass eher is_disturbed predicted wird
 class DetectDisturbedTrees:
     def __init__(self, on=True, scale_pos_weight=4, random_state=42):
         self.on = on
