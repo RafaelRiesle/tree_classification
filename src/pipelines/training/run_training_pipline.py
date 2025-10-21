@@ -103,10 +103,10 @@ class TrainingPipeline:
         test_steps = [
             BasicFeatures(on=True),
             TimeSeriesAggregate(on=True, freq=2, method="mean"), 
-            InterpolateNaNs(on=True, method="quadratic"),   
+            InterpolateNaNs(on=True, method="quadratic"), 
+            Interpolation(on=True),  
             CalculateIndices(on=True),
             TemporalFeatures(on=True),
-            Interpolation(on=True),
         ]
 
 
@@ -117,13 +117,13 @@ class TrainingPipeline:
             CalculateIndices(on=True),
             DetectDisturbedTrees(on=True),
             AdjustLabels(on=True),
-            DataAugmentation(on=True, threshold=150), # ids with size <150 will be augmented
+            DataAugmentation(on=True, threshold=150),
             TimeSeriesAggregate(on=True, freq=2, method="mean"),
             InterpolateNaNs(on=True, method="quadratic"),
+            Smooth(on=True),
+            Interpolation(on=True),
             CalculateIndices(on=True), # Second time because of augmentation
             TemporalFeatures(on=True),  
-            Interpolation(on=True),
-
         ]
         for split_name, path_dict in split_to_paths.items():
             input_path = path_dict["input"]
