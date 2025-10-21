@@ -32,3 +32,4 @@ class CSVDataLoader:
             .replace([np.inf, -np.inf], np.nan)
             .fillna(0)
         )
+

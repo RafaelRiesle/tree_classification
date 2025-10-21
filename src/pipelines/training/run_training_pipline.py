@@ -20,26 +20,29 @@ from pipelines.processing.data_reduction.detect_disturbed_trees import (
     DetectDisturbedTrees,
 )
 from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
+from pipelines.processing.data_reduction.old_disturbance_pruner import (
+    OldDisturbancePruner,
+)
+from pipelines.processing.data_reduction.timeseries_filter import TimeSeriesFilter   
 
 
 class TrainingPipeline:
     def __init__(
         self,
         base_dir: Path = None,
-        sample_size: int = 100,
+        sample_size: int = 3000,
         train_ratio: float = 0.7,
         test_ratio: float = 0.2,
         val_ratio: float = 0.1,
         remove_outliers: bool = False,
         force_split_creation: bool = True,
-        batch_size: int = 64,
+        batch_size: int = 32,
         lr: float = 1e-3,
-        max_epochs: int = 2,
+        max_epochs: int = 100,
     ):
         # === Paths ===
         self.base_dir = base_dir or Path(__file__).resolve().parents[3]
         self.data_dir = self.base_dir / "data"
-
         self.raw_dir = self.data_dir / "raw"
         self.preprocessed_dir = self.data_dir / "preprocessed"
         self.processed_dir = self.data_dir / "processed"
@@ -49,6 +52,7 @@ class TrainingPipeline:
             "test_path": self.processed_dir / "testset.csv",
             "val_path": self.processed_dir / "valset.csv",
         }
+
 
         # === Parameters ===
         self.sample_size = sample_size
@@ -96,22 +100,38 @@ class TrainingPipeline:
             },
         }
 
-        steps = [
-            BasicFeatures(on=False),
-            TimeSeriesAggregate(on=True, freq=2, method="mean"),
-            Smooth(on=True),
+        test_steps = [
+            BasicFeatures(on=True),
+            TimeSeriesAggregate(on=True, freq=2, method="mean"), 
+            InterpolateNaNs(on=True, method="quadratic"),   
             CalculateIndices(on=True),
-            InterpolateNaNs(on=True, method="quadratic"),
             TemporalFeatures(on=True),
-            DataAugmentation(on=False),
             Interpolation(on=True),
-            DetectDisturbedTrees(on=False),
-            AdjustLabels(on=False),
         ]
 
+
+        train_steps = [
+            TimeSeriesFilter(on=True),
+            BasicFeatures(on=True),
+            OldDisturbancePruner(on=True),
+            CalculateIndices(on=True),
+            DetectDisturbedTrees(on=True),
+            AdjustLabels(on=True),
+            DataAugmentation(on=True, threshold=150), # ids with size <150 will be augmented
+            TimeSeriesAggregate(on=True, freq=2, method="mean"),
+            InterpolateNaNs(on=True, method="quadratic"),
+            CalculateIndices(on=True), # Second time because of augmentation
+            TemporalFeatures(on=True),  
+            Interpolation(on=True),
+
+        ]
         for split_name, path_dict in split_to_paths.items():
             input_path = path_dict["input"]
             output_path = path_dict["output"]
+            if split_name == "train":
+                steps = train_steps
+            else:
+                steps = test_steps  
 
             print(f"→ Processing {split_name} set: {input_path.name}")
 
@@ -120,9 +140,8 @@ class TrainingPipeline:
 
             output_path.parent.mkdir(parents=True, exist_ok=True)
             df_processed.to_csv(output_path, index=False)
-            print(f"✓ Saved processed {split_name} set to: {output_path}")
+        print(f"✓ Saved processed {split_name} set to: {output_path}")
 
-        print("[2] Processing complete.\n")
 
     def run_ensemble_models(self):
         print("[3] Training ensemble models...")

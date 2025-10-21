@@ -53,7 +53,7 @@ class GenericPipeline:
     def run(self, train_df, test_df, model_defs, val_df):
         """
         Trains and evaluates all models defined in model_defs.
-        Optionally evaluates a validation set.
+        Saves only one JSON per model that contains train, test, and validation metrics.
         """
         X_train, y_train = self.pipeline.fit(train_df)
         X_test, y_test = self.pipeline.transform(test_df)
@@ -71,46 +71,60 @@ class GenericPipeline:
             model_name = model_class.__name__
             print(f"\n{'-' * 30}\nTraining {model_name}...\n{'-' * 30}")
 
+            # GridSearch falls nötig
             if any(isinstance(v, (list, tuple)) for v in params.values()):
-                grid = GridSearchCV(
-                    model_class(), params, cv=5, n_jobs=-1, scoring="accuracy"
-                )
+                grid = GridSearchCV(model_class(), params, cv=5, n_jobs=-1, scoring="accuracy")
                 grid.fit(X_train, y_train)
                 hyperparams = grid.best_params_
                 print(f"Best hyperparameters: {hyperparams}")
             else:
                 hyperparams = params
 
-            model, train_metrics = self.ensemble.run_training(
-                model_class,
-                hyperparams,
-                X_train,
-                y_train,
-                X_train,
-                y_train,
-                feature_names,
-            )
+            # Modell trainieren
+            model, _ = self.ensemble.train_and_predict(model_class, hyperparams, X_train, y_train, X_train)
 
-            _, test_metrics = self.ensemble.run_training(
-                model_class,
-                hyperparams,
-                X_train,
-                y_train,
-                X_test,
-                y_test,
-                feature_names,
-            )
+            # Verschiedene Datensätze bewerten
+            train_pred = model.predict(X_train)
+            test_pred = model.predict(X_test)
+            val_pred = model.predict(X_val)
 
-            _, val_metrics = self.ensemble.run_training(
-                model_class,
-                hyperparams,
-                X_train,
-                y_train,
-                X_val,
-                y_val,
-                feature_names,
-            )
+            train_metrics = self.ensemble.compute_metrics(y_train, train_pred)
+            test_metrics = self.ensemble.compute_metrics(y_test, test_pred)
+            val_metrics = self.ensemble.compute_metrics(y_val, val_pred)
 
+            feat_imp_df = self.ensemble.extract_feature_importances(model, feature_names)
+            feat_imp = feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
+
+            # Kombinierte Metriken in einer JSON
+            combined_metrics = {
+                "train": train_metrics,
+                "test": test_metrics,
+                "validation": val_metrics,
+                "feature_importances": feat_imp,
+            }
+
+            # Modelldatei speichern
+            from datetime import datetime
+            import joblib
+            from pathlib import Path
+
+            model_file = self.ensemble.results_dir / f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
+            joblib.dump(model, model_file)
+
+            model_dict = {
+                "run_id": datetime.now().strftime("%Y%m%d_%H%M%S"),
+                "timestamp": datetime.now().isoformat(),
+                "model": model_name,
+                "hyperparams": hyperparams,
+                "metrics": combined_metrics,
+                "features": list(feature_names),
+                "model_file": str(model_file),
+            }
+
+            # In JSON speichern (nur einmal!)
+            self.ensemble.save_to_json(model_dict)
+
+            # Zusammenfassung
             results_summary.append(
                 {
                     "model": model_name,
@@ -120,5 +134,7 @@ class GenericPipeline:
                 }
             )
 
+            # Ausgabe im Terminal
             self._print_metrics(model_name, test_metrics)
+
         return self.ensemble.load_models()

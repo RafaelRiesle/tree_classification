@@ -16,7 +16,7 @@ class EnsemblePipeline:
     def drop_columns(self, df):
         """Remove unnecessary columns."""
         return df.drop(
-            columns=["time", "id", "disturbed", "disturbance_year"], errors="ignore"
+            columns=["time", "id", "is_disturbed", "disturbance_year","date_diff"], errors="ignore"
         )
 
     def _encode_features(self, df):

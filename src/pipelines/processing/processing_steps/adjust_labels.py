@@ -9,6 +9,17 @@ from pipelines.processing.features.statistical_features import StatisticalFeatur
 bands_and_indices = spectral_bands + indices
 
 
+import pandas as pd
+from general_utils.constants import spectral_bands, indices
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
+import xgboost as xgb
+
+from pipelines.processing.features.statistical_features import StatisticalFeatures
+
+bands_and_indices = spectral_bands + indices
+
+
 class AdjustLabels:
     def __init__(self, on=True):
         self.on = on
@@ -33,9 +44,6 @@ class AdjustLabels:
         df_train = self.stats.calculate_keyfigures_per_id(df, self.bands_and_indices)
 
         df_disturbed = df[df["species"] == "disturbed"]
-        # df_disturbed_before = df_disturbed[
-        #     df_disturbed["time"].dt.year < df_disturbed["disturbance_year"]
-        # ] # TODO: check if this is needed, because class OldDisturbancePruner does basically the same
 
         df_spruce_pine = df_train[
             df_train["species"].isin(["Norway_spruce", "Scots_pine"])
@@ -61,12 +69,6 @@ class AdjustLabels:
             eval_metric="logloss",
         )
         xgb_model.fit(X_train, y_train)
-
-        y_pred = xgb_model.predict(X_test)
-        # print("Confusion Matrix:")
-        # print(confusion_matrix(y_test, y_pred))
-        # print("\nClassification Report:")
-        # print(classification_report(y_test, y_pred))
 
         df_disturbed_prepared = self.stats.calculate_keyfigures_per_id(
             df_disturbed, self.bands_and_indices
@@ -99,12 +101,22 @@ class AdjustLabels:
 
         return df_updated
 
+    def unify_disturbed_labels(self, df):
+        """
+        Replace any label that contains 'disturbed' with just 'disturbed'.
+        """
+        df = df.copy()
+        mask = df["species"].astype(str).str.contains("disturbed", case=False, na=False)
+        df.loc[mask, "species"] = "disturbed"
+        return df
+
     def run(self, df):
         """
-        Runs both label adjustments on a dataframe.
+        Runs all label adjustments on a dataframe.
         """
         if not self.on:
             return df
         df = self.get_soil_disturbed_col(df)
         df = self.specify_label_disturbed(df)
+        df = self.unify_disturbed_labels(df)
         return df

@@ -70,7 +70,9 @@ class CalculateIndices:
 
     @staticmethod
     def calculate_mtci(df: pd.DataFrame):
-        return (df["b6"] - df["b5"]) / (df["b6"] - df["b4"])
+        mtci = (df["b6"] - df["b5"]) - 0.5 * (df["b4"] - df["b5"])
+        return mtci.replace([np.inf, -np.inf], np.nan)
+    
 
     @staticmethod
     def calculate_rendvi(df: pd.DataFrame):
