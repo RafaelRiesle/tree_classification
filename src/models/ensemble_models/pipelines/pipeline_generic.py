@@ -62,6 +62,7 @@ class GenericPipeline:
         X_test, y_test = self.pipeline.transform(test_df)
         X_val, y_val = self.pipeline.transform(val_df)
 
+
         feature_names = (
             X_train.columns
             if hasattr(X_train, "columns")

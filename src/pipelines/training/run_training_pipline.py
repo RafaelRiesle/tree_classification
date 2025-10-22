@@ -164,7 +164,7 @@ class TrainingPipeline:
         print("=== Starting Training Pipeline ===")
         self.run_preprocessing()
         self.run_processing()
-        self.run_ensemble_models()
+        #self.run_ensemble_models()
         self.run_lstm_models()
         print("=== Training Pipeline Finished ===")
 
