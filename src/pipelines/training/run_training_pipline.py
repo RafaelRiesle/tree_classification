@@ -30,15 +30,15 @@ class TrainingPipeline:
     def __init__(
         self,
         base_dir: Path = None,
-        sample_size: int = 300,
+        sample_size: int = None,
         train_ratio: float = 0.7,
         test_ratio: float = 0.2,
         val_ratio: float = 0.1,
         remove_outliers: bool = False,
-        force_split_creation: bool = True,
-        batch_size: int = 32,
+        force_split_creation: bool = False,
+        batch_size: int = 64,
         lr: float = 1e-3,
-        max_epochs: int = 100,
+        max_epochs: int = 250,
     ):
         # === Paths ===
         self.base_dir = base_dir or Path(__file__).resolve().parents[3]
@@ -111,19 +111,19 @@ class TrainingPipeline:
 
 
         train_steps = [
-            TimeSeriesFilter(on=True),
+            TimeSeriesFilter(on=True),   
             BasicFeatures(on=True),
             OldDisturbancePruner(on=True),
             CalculateIndices(on=True),
             DetectDisturbedTrees(on=True),
             AdjustLabels(on=True),
-            DataAugmentation(on=True, threshold=150), # ids with size <150 will be augmented
+            DataAugmentation(on=True, threshold=150),
             TimeSeriesAggregate(on=True, freq=2, method="mean"),
             InterpolateNaNs(on=True, method="quadratic"),
+            Smooth(on=True, overwrite=True),
+            Interpolation(on=True),
             CalculateIndices(on=True), # Second time because of augmentation
             TemporalFeatures(on=True),  
-            Interpolation(on=True),
-
         ]
         for split_name, path_dict in split_to_paths.items():
             input_path = path_dict["input"]

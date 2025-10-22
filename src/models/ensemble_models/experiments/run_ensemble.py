@@ -16,10 +16,11 @@ def define_models():
     return [
         (
             RandomForestClassifier,
-            {"n_estimators": [100],
-              "max_depth": [10],
-            "min_samples_split": [3],
-              "max_features": ["log2", "sqrt"]}
+            {
+                "n_estimators": [200],
+                "max_depth": [20],
+                "min_samples_split": [6],
+            },
         ),
         # (
         #     xgb.XGBClassifier,
@@ -49,7 +50,6 @@ def run_ensemble(train_path=TRAIN_PATH, test_path=TEST_PATH, val_path=VAL_PATH):
         print(f"Training completed for {model_class.__name__}.\n")
 
     print("All models have been trained!")
-
 
 
 if __name__ == "__main__":
