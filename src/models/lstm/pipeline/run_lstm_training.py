@@ -1,5 +1,5 @@
 from pathlib import Path
-from models.lstm.pipeline.data_processor import DataProcessor
+from models.lstm.lstm_utils.data_processor import DataProcessor
 from models.lstm.experiments.lstm_trainer import LSTMTrainer
 from models.lstm.evaluation.model_evaluator import ModelEvaluator
 

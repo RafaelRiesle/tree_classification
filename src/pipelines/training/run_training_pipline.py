@@ -23,7 +23,8 @@ from pipelines.processing.processing_steps.adjust_labels import AdjustLabels
 from pipelines.processing.data_reduction.old_disturbance_pruner import (
     OldDisturbancePruner,
 )
-from pipelines.processing.data_reduction.timeseries_filter import TimeSeriesFilter   
+from pipelines.processing.data_reduction.timeseries_filter import TimeSeriesFilter
+from models.time_series.pipeline.run_pyts_model import PytsModelPipeline
 
 
 class TrainingPipeline:
@@ -34,13 +35,14 @@ class TrainingPipeline:
         train_ratio: float = 0.7,
         test_ratio: float = 0.2,
         val_ratio: float = 0.1,
-        remove_outliers: bool = False,
+        remove_outliers: bool = True,
         force_split_creation: bool = False,
-        batch_size: int = 64,
+        force_preprocessing: bool = False,  
+        force_processing: bool = False,      # <--- NEU
+        batch_size: int = 32,
         lr: float = 1e-3,
-        max_epochs: int = 250,
+        max_epochs: int = 50,
     ):
-        # === Paths ===
         self.base_dir = base_dir or Path(__file__).resolve().parents[3]
         self.data_dir = self.base_dir / "data"
         self.raw_dir = self.data_dir / "raw"
@@ -53,21 +55,33 @@ class TrainingPipeline:
             "val_path": self.processed_dir / "valset.csv",
         }
 
-
-        # === Parameters ===
         self.sample_size = sample_size
         self.train_ratio = train_ratio
         self.test_ratio = test_ratio
         self.val_ratio = val_ratio
         self.remove_outliers = remove_outliers
         self.force_split_creation = force_split_creation
+        self.force_preprocessing = force_preprocessing
+        self.force_processing = force_processing
         self.batch_size = batch_size
         self.lr = lr
         self.max_epochs = max_epochs
 
+    # ------------------------------------------------------------
+    # PREPROCESSING
+    # ------------------------------------------------------------
     def run_preprocessing(self):
-        print("[1] Running preprocessing...")
+        """Run preprocessing only if forced or missing outputs."""
+        preprocessed_files_exist = all(
+            (self.preprocessed_dir / f"{split}set.csv").exists()
+            for split in ["train", "test", "val"]
+        )
 
+        if preprocessed_files_exist and not self.force_preprocessing:
+            print("[1] Skipping preprocessing — existing files found.")
+            return
+
+        print("[1] Running preprocessing...")
         run_preprocessing_pipeline(
             data_path=self.raw_dir / "raw_trainset.csv",
             splits_output_path=self.raw_dir / "splits",
@@ -82,7 +96,19 @@ class TrainingPipeline:
         )
         print("[1] Preprocessing complete.\n")
 
+    # ------------------------------------------------------------
+    # PROCESSING
+    # ------------------------------------------------------------
     def run_processing(self):
+        """Run processing only if forced or missing processed datasets."""
+        processed_files_exist = all(
+            self.paths[key].exists() for key in ["train_path", "test_path", "val_path"]
+        )
+
+        if processed_files_exist and not self.force_processing:
+            print("[2] Skipping processing — existing processed files found.")
+            return
+
         print("[2] Running processing for train, test and val datasets...")
 
         split_to_paths = {
@@ -102,47 +128,51 @@ class TrainingPipeline:
 
         test_steps = [
             BasicFeatures(on=True),
-            TimeSeriesAggregate(on=True, freq=2, method="mean"), 
-            InterpolateNaNs(on=True, method="quadratic"),   
+            TimeSeriesAggregate(on=True, freq=2, method="mean"),
+            InterpolateNaNs(on=True, method="quadratic"),
             CalculateIndices(on=True),
             TemporalFeatures(on=True),
             Interpolation(on=True),
         ]
 
-
         train_steps = [
-            TimeSeriesFilter(on=True),   
+            TimeSeriesFilter(on=True),
             BasicFeatures(on=True),
             OldDisturbancePruner(on=True),
             CalculateIndices(on=True),
             DetectDisturbedTrees(on=True),
             AdjustLabels(on=True),
-            DataAugmentation(on=True, threshold=150),
+            DataAugmentation(on=False, threshold=150),
             TimeSeriesAggregate(on=True, freq=2, method="mean"),
             InterpolateNaNs(on=True, method="quadratic"),
             Smooth(on=True, overwrite=True),
             Interpolation(on=True),
-            CalculateIndices(on=True), # Second time because of augmentation
-            TemporalFeatures(on=True),  
+            CalculateIndices(on=True),
+            TemporalFeatures(on=True),
         ]
+
         for split_name, path_dict in split_to_paths.items():
             input_path = path_dict["input"]
             output_path = path_dict["output"]
-            if split_name == "train":
-                steps = train_steps
-            else:
-                steps = test_steps  
 
+            if not input_path.exists():
+                raise FileNotFoundError(
+                    f"Missing preprocessed file for {split_name}: {input_path}"
+                )
+
+            steps = train_steps if split_name == "train" else test_steps
             print(f"→ Processing {split_name} set: {input_path.name}")
 
             pipeline = ProcessingPipeline(path=input_path, steps=steps)
             df_processed = pipeline.run()
-
             output_path.parent.mkdir(parents=True, exist_ok=True)
             df_processed.to_csv(output_path, index=False)
-        print(f"✓ Saved processed {split_name} set to: {output_path}")
+            print(f"✓ Saved processed {split_name} set to: {output_path}")
+        print("[2] Processing complete.\n")
 
-
+    # ------------------------------------------------------------
+    # MODELS
+    # ------------------------------------------------------------
     def run_ensemble_models(self):
         print("[3] Training ensemble models...")
         run_ensemble(**self.paths)
@@ -160,15 +190,29 @@ class TrainingPipeline:
         evaluate_model(model, data_module, data_info)
         print("[4] LSTM training & evaluation complete.\n")
 
+    def run_pyts_model(self):
+        print("[5] Training Pyts RandomForest model...")
+        pyts_pipeline = PytsModelPipeline(
+            train_path=self.paths["train_path"],
+            test_path=self.paths["test_path"],
+            valid_path=self.paths["val_path"],
+        )
+        pyts_pipeline.run_pipeline()
+        print("[5] Pyts RandomForest training complete.\n")
+
+    # ------------------------------------------------------------
+    # MAIN PIPELINE
+    # ------------------------------------------------------------
     def run(self):
         print("=== Starting Training Pipeline ===")
         self.run_preprocessing()
         self.run_processing()
-        #self.run_ensemble_models()
+        self.run_pyts_model()
         self.run_lstm_models()
+        self.run_ensemble_models()
         print("=== Training Pipeline Finished ===")
 
 
 if __name__ == "__main__":
-    pipeline = TrainingPipeline()
+    pipeline = TrainingPipeline(force_processing=True)
     pipeline.run()
