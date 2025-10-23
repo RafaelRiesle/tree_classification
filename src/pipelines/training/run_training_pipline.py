@@ -31,14 +31,14 @@ class TrainingPipeline:
     def __init__(
         self,
         base_dir: Path = None,
-        sample_size: int = None,
+        sample_size: int = 300,
         train_ratio: float = 0.7,
         test_ratio: float = 0.2,
         val_ratio: float = 0.1,
-        remove_outliers: bool = True,
+        remove_outliers: bool = False,
         force_split_creation: bool = False,
         force_preprocessing: bool = False,  
-        force_processing: bool = False,      # <--- NEU
+        force_processing: bool = False, 
         batch_size: int = 32,
         lr: float = 1e-3,
         max_epochs: int = 50,
@@ -207,12 +207,12 @@ class TrainingPipeline:
         print("=== Starting Training Pipeline ===")
         self.run_preprocessing()
         self.run_processing()
-        self.run_pyts_model()
+        #self.run_pyts_model()
         self.run_lstm_models()
-        self.run_ensemble_models()
+        #self.run_ensemble_models()
         print("=== Training Pipeline Finished ===")
 
 
 if __name__ == "__main__":
-    pipeline = TrainingPipeline(force_processing=True)
+    pipeline = TrainingPipeline(force_preprocessing=True,force_processing=True)
     pipeline.run()
