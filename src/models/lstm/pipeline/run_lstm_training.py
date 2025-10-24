@@ -13,7 +13,7 @@ def train_model(
     train_path=TRAIN_PATH,
     val_path=TEST_PATH,
     test_path=VAL_PATH,
-    batch_size=16,
+    batch_size=32,
     lr=0.001,
     max_epochs=5,
 ):

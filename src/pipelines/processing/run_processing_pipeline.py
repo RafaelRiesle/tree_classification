@@ -1,7 +1,4 @@
 from pathlib import Path
-from pipelines.preprocessing.run_preprocessing_pipeline import (
-    run_preprocessing_pipeline,
-)
 from pipelines.processing.processing_steps.interpolation import Interpolation
 from pipelines.processing.data_reduction.detect_disturbed_trees import (
     DetectDisturbedTrees,
@@ -23,12 +20,12 @@ from pipelines.processing.data_reduction.timeseries_filter import TimeSeriesFilt
 BASE_DIR = Path(__file__).resolve().parents[3]
 RAW_DIR = BASE_DIR / "data/raw"
 PREPROCESSED_DIR = BASE_DIR / "data/preprocessed"
-processed_dir = BASE_DIR / "data/processed"
+PROCESSED_DIR = BASE_DIR / "data/processed"
 
 paths = {
-    "train_path": processed_dir / "trainset.csv",
-    "test_path": processed_dir / "testset.csv",
-    "val_path": processed_dir / "valset.csv",
+    "train_path": PROCESSED_DIR / "trainset.csv",
+    "test_path": PROCESSED_DIR / "testset.csv",
+    "val_path": PROCESSED_DIR / "valset.csv",
 }
 
 
@@ -90,11 +87,18 @@ def run_processing():
         print(f"✓ Saved processed {split_name}; Shape: {df_processed.shape}")
 
 
-def run_training_pipeline():
+def run_processing_pipeline(force_processing=True):
     print("=== Starting Processing Pipeline ===")
+    processed_files_exist = all(
+        paths[key].exists() for key in ["train_path", "test_path", "val_path"]
+    )
+
+    if processed_files_exist and not force_processing:
+        print("[2] Skipping processing — existing processed files found.")
+        return
     run_processing()
     print("=== Processing Finished ===")
 
 
 if __name__ == "__main__":
-    run_training_pipeline()
+    run_processing_pipeline()

@@ -14,9 +14,14 @@ class DataProcessor:
         self.feature_columns = None
         self.loader = CSVDataLoader()
 
-        # Einheitliche Liste an Spalten, die nie als Feature verwendet werden sollen
         self.exclude_columns = [
-            "time", "id", "disturbance_year", "is_disturbed", "date_diff", "year"
+            "time",
+            "id",
+            "disturbance_year",
+            "is_disturbed",
+            "date_diff",
+            "year",
+            "doy",
         ]
 
     def load_data(self):
@@ -27,7 +32,8 @@ class DataProcessor:
 
         # --- Feature-Spalten bestimmen ---
         self.feature_columns = [
-            c for c in self.train_df.columns
+            c
+            for c in self.train_df.columns
             if c not in self.exclude_columns + [self.label_column]
         ]
 
@@ -41,12 +47,18 @@ class DataProcessor:
     def preprocess(self):
         # --- Encode labels (species) ---
         self.le = LabelEncoder()
-        self.train_df[self.label_column] = self.le.fit_transform(self.train_df[self.label_column])
-        self.val_df[self.label_column] = self.le.transform(self.val_df[self.label_column])
-        self.test_df[self.label_column] = self.le.transform(self.test_df[self.label_column])
+        self.train_df[self.label_column] = self.le.fit_transform(
+            self.train_df[self.label_column]
+        )
+        self.val_df[self.label_column] = self.le.transform(
+            self.val_df[self.label_column]
+        )
+        self.test_df[self.label_column] = self.le.transform(
+            self.test_df[self.label_column]
+        )
 
         # --- One-Hot encode categorical columns ---
-        categorical_cols = ["season", "is_growing_season", "month_num"]
+        categorical_cols = ["season", "is_growing_season", "month_num", "biweek_of_year"]
         self.train_df = pd.get_dummies(self.train_df, columns=categorical_cols)
         self.val_df = pd.get_dummies(self.val_df, columns=categorical_cols)
         self.test_df = pd.get_dummies(self.test_df, columns=categorical_cols)
@@ -57,21 +69,34 @@ class DataProcessor:
 
         # --- Feature-Spalten nach Encoding neu bestimmen ---
         self.feature_columns = [
-            c for c in self.train_df.columns
+            c
+            for c in self.train_df.columns
             if c not in self.exclude_columns + [self.label_column]
         ]
 
         # --- Numerische Features skalieren ---
         self.scaler = StandardScaler()
-        self.train_df[self.feature_columns] = self.scaler.fit_transform(self.train_df[self.feature_columns])
-        self.val_df[self.feature_columns] = self.scaler.transform(self.val_df[self.feature_columns])
-        self.test_df[self.feature_columns] = self.scaler.transform(self.test_df[self.feature_columns])
+        self.train_df[self.feature_columns] = self.scaler.fit_transform(
+            self.train_df[self.feature_columns]
+        )
+        self.val_df[self.feature_columns] = self.scaler.transform(
+            self.val_df[self.feature_columns]
+        )
+        self.test_df[self.feature_columns] = self.scaler.transform(
+            self.test_df[self.feature_columns]
+        )
 
     def create_sequences_and_weights(self):
         # --- Sequenzen für LSTM erstellen ---
-        self.train_sequences = df_to_sequences(self.train_df, self.feature_columns, self.label_column)
-        self.val_sequences = df_to_sequences(self.val_df, self.feature_columns, self.label_column)
-        self.test_sequences = df_to_sequences(self.test_df, self.feature_columns, self.label_column)
+        self.train_sequences = df_to_sequences(
+            self.train_df, self.feature_columns, self.label_column
+        )
+        self.val_sequences = df_to_sequences(
+            self.val_df, self.feature_columns, self.label_column
+        )
+        self.test_sequences = df_to_sequences(
+            self.test_df, self.feature_columns, self.label_column
+        )
 
         # --- Klassen-Gewichte berechnen ---
         labels = [y for _, y in self.train_sequences]
