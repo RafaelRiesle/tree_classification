@@ -58,9 +58,9 @@ class TemporalFeatures:
         if not self.on:
             return df
         df = self.month_and_season(df)
-        df = self.month_sin_cos(df)
+        #df = self.month_sin_cos(df)
         df = self.biweek_sin_cos(df)
-        df = self.calc_sin_cos(df)
+        #df = self.calc_sin_cos(df)
         df = self.date_diff(df)
         df = self.growing_season(df)
         return df
