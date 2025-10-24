@@ -60,7 +60,7 @@ class LSTMTrainer:
             callbacks=[
                 checkpoint_callback,
                 LearningRateMonitor(logging_interval="epoch"),
-                EarlyStopping(monitor="val_acc", patience=10),
+                EarlyStopping(monitor="train_loss", patience=10),
             ],
             default_root_dir=RESULTS_DIR
         )

@@ -62,6 +62,7 @@ class GenericPipeline:
         X_test, y_test = self.pipeline.transform(test_df)
         X_val, y_val = self.pipeline.transform(val_df)
 
+
         feature_names = (
             X_train.columns
             if hasattr(X_train, "columns")
@@ -76,7 +77,7 @@ class GenericPipeline:
 
             # GridSearch falls nötig
             if any(isinstance(v, (list, tuple)) for v in params.values()):
-                grid = GridSearchCV(model_class(), params, cv=5, n_jobs=-1, scoring="accuracy")
+                grid = GridSearchCV(model_class(), params, cv=3, n_jobs=-1, scoring="accuracy")
                 grid.fit(X_train, y_train)
                 hyperparams = grid.best_params_
                 print(f"Best hyperparameters: {hyperparams}")
