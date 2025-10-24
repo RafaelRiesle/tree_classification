@@ -29,7 +29,8 @@ dependencies = [
   "tabulate",
   "pytorch_lightning",
   "lightgbm",
-  "tqdm_joblib"
+  "tqdm_joblib", 
+  "shap"
 ]
 
 [tool.setuptools.packages.find]
