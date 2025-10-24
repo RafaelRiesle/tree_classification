@@ -29,7 +29,7 @@ class TrainingPipeline:
     def run_ensemble_models(self):
         print("[3] Training ensemble models...")
         run_ensemble(**self.paths)
-        run_evaluation_for_best_model()
+        #run_evaluation_for_best_model()
         print("[3] Ensemble training complete.\n")
 
 
