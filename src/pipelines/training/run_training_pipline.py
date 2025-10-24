@@ -128,11 +128,11 @@ class TrainingPipeline:
 
         test_steps = [
             BasicFeatures(on=True),
-            TimeSeriesAggregate(on=True, freq=2, method="mean"),
-            InterpolateNaNs(on=True, method="quadratic"),
+            TimeSeriesAggregate(on=True, freq=2, method="mean"), 
+            InterpolateNaNs(on=True, method="quadratic"), 
+            Interpolation(on=True),  
             CalculateIndices(on=True),
             TemporalFeatures(on=True),
-            Interpolation(on=True),
         ]
 
         train_steps = [
