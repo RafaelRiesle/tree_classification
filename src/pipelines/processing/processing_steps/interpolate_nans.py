@@ -1,6 +1,6 @@
 import pandas as pd
 
-
+# TODO THreshold wird aktuell nicht verwendet
 class InterpolateNaNs:
     def __init__(self, on=True, method="linear", threshold=150):
         self.on = on

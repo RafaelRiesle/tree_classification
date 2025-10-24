@@ -31,26 +31,7 @@ paths = {
             "val_path": processed_dir / "valset.csv",
         }
 
-
-def run_preprocessing():
-    print("[1] Running preprocessing...")
-    run_preprocessing_pipeline(
-        data_path=RAW_DIR / "raw_trainset.csv",
-        splits_output_path=RAW_DIR / "splits",
-        preprocessed_output_path=PREPROCESSED_DIR,
-        sample_size=None,
-        train_ratio=0.7,
-        test_ratio=0.2,
-        val_ratio=0.1,
-        remove_outliers=False,
-        contamination=0.05,
-        force_split_creation=False,
-    )
-    print("[1] Preprocessing complete.\n")
-
 def run_processing():
-        print("[2] Running processing for train, test and val datasets...")
-
         split_to_paths = {
             "train": {
                 "input": PREPROCESSED_DIR / "trainset.csv",
@@ -67,28 +48,28 @@ def run_processing():
         }
 
         test_steps = [
-            BasicFeatures(on=True),
+            BasicFeatures(on=False),
             TimeSeriesAggregate(on=True, freq=2, method="mean"), 
-            InterpolateNaNs(on=True, method="quadratic"),   
+            InterpolateNaNs(on=True, method="linear"),   
             CalculateIndices(on=True),
             TemporalFeatures(on=True),
-            Interpolation(on=True),
+            Interpolation(on=False),
         ]
 
 
         train_steps = [
-            TimeSeriesFilter(on=True),   
-            BasicFeatures(on=True),
-            OldDisturbancePruner(on=True),
-            CalculateIndices(on=True),
-            DetectDisturbedTrees(on=True),
-            AdjustLabels(on=True),
-            DataAugmentation(on=True, threshold=150),
+            TimeSeriesFilter(on=False),   
+            BasicFeatures(on=False),
+            OldDisturbancePruner(on=False),
+            CalculateIndices(on=False),
+            DetectDisturbedTrees(on=False),
+            AdjustLabels(on=False),
+            DataAugmentation(on=False, threshold=150),
             TimeSeriesAggregate(on=True, freq=2, method="mean"),
-            InterpolateNaNs(on=True, method="quadratic"),
-            Smooth(on=True, overwrite=True),
-            Interpolation(on=True),
-            CalculateIndices(on=True), # Second time because of augmentation
+            InterpolateNaNs(on=True, method="linear"),
+            Smooth(on=False, overwrite=False),
+            Interpolation(on=False),
+            CalculateIndices(on=True),
             TemporalFeatures(on=True),  
         ]
         for split_name, path_dict in split_to_paths.items():
@@ -106,12 +87,11 @@ def run_processing():
 
             output_path.parent.mkdir(parents=True, exist_ok=True)
             df_processed.to_csv(output_path, index=False)
-        print(f"✓ Saved processed {split_name} set to: {output_path}")
+            print(f"✓ Saved processed {split_name}; Shape: {df_processed.shape}")
 
 
 def run_training_pipeline():
     print("=== Starting Processing Pipeline ===")
-    run_preprocessing()
     run_processing()
     print("=== Processing Finished ===")
 

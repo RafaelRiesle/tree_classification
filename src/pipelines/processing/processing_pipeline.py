@@ -12,7 +12,7 @@ class ProcessingPipeline:
 
         if self.path is not None:
             self.df = pd.read_csv(self.path, parse_dates=["time"])
-
+            print(f"{self.df.shape}")
     def add_step(self, step):
         self.steps.append(step)
 

@@ -109,11 +109,16 @@ def run_preprocessing_pipeline(
     remove_outliers: bool = True,
     contamination: float = 0.05,
     force_split_creation: bool = False,
-    max_median_diff_days: int = 14,
+    years: list[int] | None = None,
 ):
     """Run the full preprocessing pipeline with configurable options."""
 
     df = load_data(data_path)
+
+
+    if years is not None:
+        df["time"] = pd.to_datetime(df["time"])
+        df = df[df["time"].dt.year.isin(years)]
 
     splits = load_or_create_splits(
         df,
@@ -145,16 +150,19 @@ def run_preprocessing_pipeline(
             print(f"✓ Saved {split_name} split to {output_file}")
 
 
+
 if __name__ == "__main__":
     run_preprocessing_pipeline(
         data_path=DATA_PATH,
         splits_output_path=SPLITS_PATH,
         preprocessed_output_path=PREPROCESSED_PATH,
-        sample_size=100,
+        sample_size=None,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
         remove_outliers=False,
         contamination=0.05,
         force_split_creation=True,
+        #years=[2018, 2019, 2020],
     )
+
