@@ -170,9 +170,7 @@ class TrainingPipeline:
             print(f"✓ Saved processed {split_name} set to: {output_path}")
         print("[2] Processing complete.\n")
 
-    # ------------------------------------------------------------
-    # MODELS
-    # ------------------------------------------------------------
+
     def run_ensemble_models(self):
         print("[3] Training ensemble models...")
         run_ensemble(**self.paths)
@@ -199,16 +197,13 @@ class TrainingPipeline:
         )
         pyts_pipeline.run_pipeline()
         print("[5] Pyts RandomForest training complete.\n")
-
-    # ------------------------------------------------------------
-    # MAIN PIPELINE
-    # ------------------------------------------------------------
+        
     def run(self):
         print("=== Starting Training Pipeline ===")
         self.run_preprocessing()
         self.run_processing()
-        #self.run_pyts_model()
-        self.run_lstm_models()
+        self.run_pyts_model()
+        #self.run_lstm_models()
         #self.run_ensemble_models()
         print("=== Training Pipeline Finished ===")
 

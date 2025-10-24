@@ -1,8 +1,6 @@
 import numpy as np
 from typing import List, Tuple, Dict
-from models.time_series.ts_randomforrest_utils.time_series_preprocessor import (
-    TimeSeriesPreprocessor)
-
+from models.time_series.ts_randomforrest_utils.time_series_preprocessor import TimeSeriesPreprocessor
 class PytsDatasetBuilder:
     """Manages train/test/validation dataset preparation."""
 
@@ -20,14 +18,14 @@ class PytsDatasetBuilder:
 
     def build(self) -> Dict[str, Tuple[np.ndarray, np.ndarray]]:
         """Creates X_train, y_train, X_test, y_test, X_valid, y_valid."""
-        print("Preparing training data...")
-        X_train, y_train = self.preprocessor.prepare_dataset(self.train_path)
+        print("Preparing training data (fit)...")
+        X_train, y_train = self.preprocessor.prepare_dataset(self.train_path, fit=True)
 
-        print("Preparing test data...")
-        X_test, y_test = self.preprocessor.prepare_dataset(self.test_path)
+        print("Preparing test data (transform only)...")
+        X_test, y_test = self.preprocessor.prepare_dataset(self.test_path, fit=False)
 
-        print("Preparing validation data...")
-        X_valid, y_valid = self.preprocessor.prepare_dataset(self.valid_path)
+        print("Preparing validation data (transform only)...")
+        X_valid, y_valid = self.preprocessor.prepare_dataset(self.valid_path, fit=False)
 
         return {
             "train": (X_train, y_train),

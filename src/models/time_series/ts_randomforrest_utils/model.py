@@ -1,11 +1,28 @@
 import os
+import pandas as pd
 from datetime import datetime
 import joblib
+from typing import Dict, Tuple, List, Any
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import StandardScaler
+
+import matplotlib.pyplot as plt
+import os
+from datetime import datetime
+import os
+import pandas as pd
+from datetime import datetime
+import joblib
+from typing import Dict, Tuple, List, Any
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+
 
 class FlattenedRandomForestModel:
     """
@@ -120,7 +137,11 @@ class FlattenedRandomForestModel:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         path = f"{folder}/random_forest_{timestamp}.joblib"
         joblib.dump(
-            {"model": self.model, "label_encoder": label_encoder, "scaler": self.scaler},
+            {
+                "model": self.model,
+                "label_encoder": label_encoder,
+                "scaler": self.scaler,
+            },
             path,
         )
         return path
@@ -133,3 +154,56 @@ class FlattenedRandomForestModel:
         self.scaler = data.get("scaler", None)
         self.is_trained = True
         return data.get("label_encoder", None)
+
+    def get_feature_importances(
+        self, feature_names: List[str], n_timestamps: int
+    ) -> pd.DataFrame:
+        """
+        Gibt die Feature-Importances als DataFrame zurück, gruppiert nach Featuretyp über die Zeitachse.
+        """
+        if not hasattr(self.model, "feature_importances_"):
+            raise RuntimeError("Model has no feature_importances_ attribute.")
+
+        importances = self.model.feature_importances_
+
+        # Da die Zeitreihen flach gemacht wurden, müssen wir die Importances reshapen:
+        n_features = len(feature_names)
+        reshaped = importances.reshape(n_timestamps, n_features)
+
+        # Mittelwert der Wichtigkeiten über die Zeit berechnen
+        mean_importances = reshaped.mean(axis=0)
+
+        df_importances = pd.DataFrame(
+            {"feature": feature_names, "mean_importance": mean_importances}
+        ).sort_values(by="mean_importance", ascending=False)
+
+        return df_importances
+
+    def save_feature_importances_plot(
+        self, feature_names: List[str], n_timestamps: int, folder: str = "XXX"
+    ):
+        """
+        Berechnet die Feature Importances und speichert sie als PNG-Balkendiagramm.
+        """
+        if not hasattr(self.model, "feature_importances_"):
+            raise RuntimeError("Model has no feature_importances_ attribute.")
+
+        df_importances = self.get_feature_importances(feature_names, n_timestamps)
+
+        os.makedirs(folder, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        path = f"{folder}/feature_importances_{timestamp}.png"
+
+        plt.figure(figsize=(10, 6))
+        plt.barh(
+            df_importances["feature"],
+            df_importances["mean_importance"],
+            color="skyblue",
+        )
+        plt.xlabel("Mean Feature Importance")
+        plt.ylabel("Feature")
+        plt.title("Random Forest Feature Importances")
+        plt.gca().invert_yaxis()
+        plt.tight_layout()
+        plt.savefig(path)
+        plt.close()

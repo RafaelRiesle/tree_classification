@@ -18,7 +18,7 @@ from pipelines.processing.processing_steps.smoothing import Smooth
 from pipelines.processing.data_reduction.old_disturbance_pruner import (
     OldDisturbancePruner,
 )
-from pipelines.processing.data_reduction.timeseries_filter import TimeSeriesFilter   
+from pipelines.processing.data_reduction.timeseries_filter import TimeSeriesFilter
 
 BASE_DIR = Path(__file__).resolve().parents[3]
 RAW_DIR = BASE_DIR / "data/raw"
@@ -26,68 +26,68 @@ PREPROCESSED_DIR = BASE_DIR / "data/preprocessed"
 processed_dir = BASE_DIR / "data/processed"
 
 paths = {
-            "train_path": processed_dir / "trainset.csv",
-            "test_path": processed_dir / "testset.csv",
-            "val_path": processed_dir / "valset.csv",
-        }
+    "train_path": processed_dir / "trainset.csv",
+    "test_path": processed_dir / "testset.csv",
+    "val_path": processed_dir / "valset.csv",
+}
+
 
 def run_processing():
-        split_to_paths = {
-            "train": {
-                "input": PREPROCESSED_DIR / "trainset.csv",
-                "output": paths["train_path"],
-            },
-            "test": {
-                "input": PREPROCESSED_DIR / "testset.csv",
-                "output": paths["test_path"],
-            },
-            "val": {
-                "input": PREPROCESSED_DIR / "valset.csv",
-                "output": paths["val_path"],
-            },
-        }
+    split_to_paths = {
+        "train": {
+            "input": PREPROCESSED_DIR / "trainset.csv",
+            "output": paths["train_path"],
+        },
+        "test": {
+            "input": PREPROCESSED_DIR / "testset.csv",
+            "output": paths["test_path"],
+        },
+        "val": {
+            "input": PREPROCESSED_DIR / "valset.csv",
+            "output": paths["val_path"],
+        },
+    }
 
-        test_steps = [
-            BasicFeatures(on=False),
-            TimeSeriesAggregate(on=True, freq=2, method="mean"), 
-            InterpolateNaNs(on=True, method="linear"),   
-            CalculateIndices(on=True),
-            TemporalFeatures(on=True),
-            Interpolation(on=False),
-        ]
+    test_steps = [
+        BasicFeatures(on=False),
+        TimeSeriesAggregate(on=True, freq=2, method="mean"),
+        InterpolateNaNs(on=True, method="linear"),
+        CalculateIndices(on=True),
+        TemporalFeatures(on=True),
+        Interpolation(on=True),
+    ]
 
+    train_steps = [
+        TimeSeriesFilter(on=False),
+        BasicFeatures(on=False),
+        OldDisturbancePruner(on=False),
+        CalculateIndices(on=False),
+        DetectDisturbedTrees(on=False),
+        AdjustLabels(on=False),
+        DataAugmentation(on=False, threshold=150),
+        TimeSeriesAggregate(on=True, freq=2, method="mean"),
+        InterpolateNaNs(on=True, method="linear"),
+        Smooth(on=False, overwrite=False),
+        Interpolation(on=True),
+        CalculateIndices(on=True),
+        TemporalFeatures(on=True),
+    ]
+    for split_name, path_dict in split_to_paths.items():
+        input_path = path_dict["input"]
+        output_path = path_dict["output"]
+        if split_name == "train":
+            steps = train_steps
+        else:
+            steps = test_steps
 
-        train_steps = [
-            TimeSeriesFilter(on=False),   
-            BasicFeatures(on=False),
-            OldDisturbancePruner(on=False),
-            CalculateIndices(on=False),
-            DetectDisturbedTrees(on=False),
-            AdjustLabels(on=False),
-            DataAugmentation(on=False, threshold=150),
-            TimeSeriesAggregate(on=True, freq=2, method="mean"),
-            InterpolateNaNs(on=True, method="linear"),
-            Smooth(on=False, overwrite=False),
-            Interpolation(on=False),
-            CalculateIndices(on=True),
-            TemporalFeatures(on=True),  
-        ]
-        for split_name, path_dict in split_to_paths.items():
-            input_path = path_dict["input"]
-            output_path = path_dict["output"]
-            if split_name == "train":
-                steps = train_steps
-            else:
-                steps = test_steps  
+        print(f"→ Processing {split_name} set: {input_path.name}")
 
-            print(f"→ Processing {split_name} set: {input_path.name}")
+        pipeline = ProcessingPipeline(path=input_path, steps=steps)
+        df_processed = pipeline.run()
 
-            pipeline = ProcessingPipeline(path=input_path, steps=steps)
-            df_processed = pipeline.run()
-
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            df_processed.to_csv(output_path, index=False)
-            print(f"✓ Saved processed {split_name}; Shape: {df_processed.shape}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        df_processed.to_csv(output_path, index=False)
+        print(f"✓ Saved processed {split_name}; Shape: {df_processed.shape}")
 
 
 def run_training_pipeline():
