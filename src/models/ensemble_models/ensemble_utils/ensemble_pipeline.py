@@ -36,16 +36,16 @@ class EnsemblePipeline:
     def fit(self, train_df, force_rebuild=False):
         cache_file = self._cache_path("train")
         if cache_file.exists() and not force_rebuild:
-            print(f"📂 Loading cached training features from {cache_file}")
+            print(f"Loading cached training features from {cache_file}")
             df = pd.read_csv(cache_file)
         else:
-            print("⚙️ Generating new training features...")
+            print("Generating new training features...")
             ts_builder = TimeSeriesAggregator(window=56, step=28)
             feature_df = ts_builder.run(train_df)
             feature_df[self.target_col] = train_df.groupby("id")[self.target_col].first().values
             df = self.drop_columns(feature_df)
             df.to_csv(cache_file, index=False)
-            print(f"💾 Saved training features to {cache_file}")
+            print(f"Saved training features to {cache_file}")
 
         df[self.target_col] = self.label_encoder.fit_transform(df[self.target_col])
 
@@ -66,10 +66,10 @@ class EnsemblePipeline:
 
         cache_file = self._cache_path(split_name)
         if cache_file.exists() and not force_rebuild:
-            print(f"📂 Loading cached {split_name} features from {cache_file}")
+            print(f"Loading cached {split_name} features from {cache_file}")
             df = pd.read_csv(cache_file)
         else:
-            print(f"⚙️ Generating new {split_name} features...")
+            print(f"Generating new {split_name} features...")
             ts_builder = TimeSeriesAggregator(window=56, step=28)
             feature_df = ts_builder.run(df)
 
@@ -78,7 +78,7 @@ class EnsemblePipeline:
 
             df = self.drop_columns(feature_df)
             df.to_csv(cache_file, index=False)
-            print(f"💾 Saved {split_name} features to {cache_file}")
+            print(f"Saved {split_name} features to {cache_file}")
 
         if self.target_col in df.columns:
             df[self.target_col] = self.label_encoder.transform(df[self.target_col])
