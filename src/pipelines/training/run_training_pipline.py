@@ -97,7 +97,7 @@ class TrainingPipeline:
 
 if __name__ == "__main__":
     pipeline = TrainingPipeline(
-        sample_size=None,
+        sample_size=1000,
         remove_outliers=False,
         force_split_creation=True,
         force_preprocessing=True,

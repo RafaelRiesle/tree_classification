@@ -1,7 +1,9 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from pathlib import Path
-from models.ensemble_models.ensemble_utils.time_series_features import TimeSeriesAggregator
+from models.ensemble_models.ensemble_utils.time_series_features import (
+    TimeSeriesAggregator,
+)
 
 
 class EnsemblePipeline:
@@ -42,7 +44,9 @@ class EnsemblePipeline:
             print("Generating new training features...")
             ts_builder = TimeSeriesAggregator(window=56, step=28)
             feature_df = ts_builder.run(train_df)
-            feature_df[self.target_col] = train_df.groupby("id")[self.target_col].first().values
+            feature_df[self.target_col] = (
+                train_df.groupby("id")[self.target_col].first().values
+            )
             df = self.drop_columns(feature_df)
             df.to_csv(cache_file, index=False)
             print(f"Saved training features to {cache_file}")
@@ -50,7 +54,9 @@ class EnsemblePipeline:
         df[self.target_col] = self.label_encoder.fit_transform(df[self.target_col])
 
         self.categorical_cols = [
-            c for c in df.select_dtypes(include=["object", "category"]).columns if c != self.target_col
+            c
+            for c in df.select_dtypes(include=["object", "category"]).columns
+            if c != self.target_col
         ]
 
         df = self._encode_features(df)
@@ -74,7 +80,9 @@ class EnsemblePipeline:
             feature_df = ts_builder.run(df)
 
             if self.target_col in df.columns:
-                feature_df[self.target_col] = df.groupby("id")[self.target_col].first().values
+                feature_df[self.target_col] = (
+                    df.groupby("id")[self.target_col].first().values
+                )
 
             df = self.drop_columns(feature_df)
             df.to_csv(cache_file, index=False)
@@ -90,4 +98,8 @@ class EnsemblePipeline:
         X_scaled = self.scaler.transform(X)
         y = df[self.target_col] if self.target_col in df.columns else None
 
-        return (pd.DataFrame(X_scaled, columns=X.columns), y) if y is not None else pd.DataFrame(X_scaled, columns=X.columns)
+        return (
+            (pd.DataFrame(X_scaled, columns=X.columns), y)
+            if y is not None
+            else pd.DataFrame(X_scaled, columns=X.columns)
+        )
