@@ -17,8 +17,7 @@ def define_models():
         (
             RandomForestClassifier,
             {
-                "n_estimators": [300],
-                "max_depth": [15],
+                "n_estimators": [200]
 
             },
         ),

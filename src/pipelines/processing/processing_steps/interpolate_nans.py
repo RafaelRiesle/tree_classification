@@ -1,11 +1,9 @@
 import pandas as pd
 
-
 class InterpolateNaNs:
-    def __init__(self, on=True, method="linear", threshold=150):
+    def __init__(self, on=True, method="linear"):
         self.on = on
         self.method = method
-        self.threshold = threshold
 
     def interpolate_group(self, group: pd.DataFrame) -> pd.DataFrame:
         numeric_cols = group.select_dtypes(include="number").columns

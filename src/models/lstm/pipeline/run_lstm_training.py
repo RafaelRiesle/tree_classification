@@ -1,5 +1,5 @@
 from pathlib import Path
-from models.lstm.pipeline.data_processor import DataProcessor
+from models.lstm.lstm_utils.data_processor import DataProcessor
 from models.lstm.experiments.lstm_trainer import LSTMTrainer
 from models.lstm.evaluation.model_evaluator import ModelEvaluator
 
@@ -13,7 +13,7 @@ def train_model(
     train_path=TRAIN_PATH,
     val_path=TEST_PATH,
     test_path=VAL_PATH,
-    batch_size=16,
+    batch_size=32,
     lr=0.001,
     max_epochs=5,
 ):

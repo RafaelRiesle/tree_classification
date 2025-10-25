@@ -36,7 +36,6 @@ def create_splits(
     )
 
 
-# TODO was ost wenn kein outlier cleaning? welche daten nehmen
 def load_or_create_splits(
     df: pd.DataFrame,
     output_path: Path,
@@ -102,18 +101,31 @@ def run_preprocessing_pipeline(
     data_path: Path = DATA_PATH,
     splits_output_path: Path = SPLITS_PATH,
     preprocessed_output_path: Path = PREPROCESSED_PATH,
-    sample_size: int = 50,
+    sample_size: int = 2000,
     train_ratio: float = 0.7,
     test_ratio: float = 0.2,
     val_ratio: float = 0.1,
-    remove_outliers: bool = True,
+    remove_outliers: bool = False,
     contamination: float = 0.05,
     force_split_creation: bool = False,
-    max_median_diff_days: int = 14,
+    years: list[int] | None = None,
+    force_preprocessing=True,
 ):
     """Run the full preprocessing pipeline with configurable options."""
+    preprocessed_files_exist = all(
+        (PREPROCESSED_PATH / f"{split}set.csv").exists()
+        for split in ["train", "test", "val"]
+    )
 
+    if preprocessed_files_exist and not force_preprocessing:
+        print("[1] Skipping preprocessing — existing files found.")
+        return
+
+    print("=== Starting Preprocessing Pipeline ===")
     df = load_data(data_path)
+    if years is not None:
+        df["time"] = pd.to_datetime(df["time"])
+        df = df[df["time"].dt.year.isin(years)]
 
     splits = load_or_create_splits(
         df,
@@ -143,6 +155,7 @@ def run_preprocessing_pipeline(
             output_file = preprocessed_output_path / f"{split_name}set.csv"
             df_split.to_csv(output_file, index=False)
             print(f"✓ Saved {split_name} split to {output_file}")
+    print("=== Preprocessing Finished ===")
 
 
 if __name__ == "__main__":
@@ -150,11 +163,12 @@ if __name__ == "__main__":
         data_path=DATA_PATH,
         splits_output_path=SPLITS_PATH,
         preprocessed_output_path=PREPROCESSED_PATH,
-        sample_size=100,
+        sample_size=None,
         train_ratio=0.7,
         test_ratio=0.2,
         val_ratio=0.1,
         remove_outliers=False,
         contamination=0.05,
         force_split_creation=True,
+        # years=[2018, 2019, 2020],
     )
