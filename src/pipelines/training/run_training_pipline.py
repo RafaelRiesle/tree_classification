@@ -15,7 +15,7 @@ class TrainingPipeline:
     def __init__(
         self,
         base_dir: Path = None,
-        sample_size: int = 300,
+        sample_size: int = None,
         remove_outliers: bool = False,
         force_split_creation: bool = False,
         force_preprocessing: bool = False,
@@ -49,6 +49,7 @@ class TrainingPipeline:
 
     def run_preprocessing(self):
         run_preprocessing_pipeline(
+            sample_size=self.sample_size,
             force_preprocessing=self.force_preprocessing,
             remove_outliers=self.remove_outliers,
             force_split_creation=self.force_split_creation,
@@ -57,7 +58,7 @@ class TrainingPipeline:
     def run_processing(self):
         run_processing_pipeline(force_processing=self.force_preprocessing)
 
-    def run_ensemble(self):
+    def run_ensemble_model(self):
         print("Training ensemble models...")
         run_ensemble(**self.paths)
         run_evaluation_for_best_model()
@@ -90,16 +91,16 @@ class TrainingPipeline:
         self.run_processing()
         # self.run_pyts()
         # self.run_lstm()
-        # self.run_ensemble()
+        self.run_ensemble_model()
         print("=== Training Pipeline Finished ===")
 
 
 if __name__ == "__main__":
     pipeline = TrainingPipeline(
-        sample_size=100,
+        sample_size=None,
         remove_outliers=False,
-        force_split_creation=False,
-        force_preprocessing=False,
-        force_processing=False,
+        force_split_creation=True,
+        force_preprocessing=True,
+        force_processing=True,
     )
     pipeline.run()
