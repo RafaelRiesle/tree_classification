@@ -20,7 +20,7 @@ dependencies = [
     "seaborn",
     "statsmodels",
     "scikit-learn",
-    "xgboost",
+    "xgboost==3.0.5",
     "tsaug",
     "torch",
     "tensorboard",
