@@ -42,7 +42,8 @@ class BasicDataAnalysis:
         print("Number of rows:", self.get_num_rows())
         print("Number of columns:", self.get_num_cols())
         print("Unique IDs:", self.get_unique_count("id"))
-        print("Unique species:", self.get_unique_count("species"))
         print("Earliest time:", self.get_min("time"))
         print("Latest time:", self.get_max("time"))
-        print("Is id + species unique?", self.check_id_species_uniqueness())
+        if "species" in self.df.columns:
+            print("Unique species:", self.get_unique_count("species"))
+            print("Is id + species unique?", self.check_id_species_uniqueness())
