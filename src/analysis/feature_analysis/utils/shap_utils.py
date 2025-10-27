@@ -128,3 +128,47 @@ class ShapVisualizer:
 
         plt.tight_layout(pad=3.0)
         plt.show()
+
+
+    def plot_grouped_importance(self):
+        """
+        Compute and visualize mean absolute SHAP values grouped by feature components
+        (band, statistic, month). Expects feature names in the format 'band_stat_month'.
+        """
+
+        mean_abs = np.mean(np.abs(self.shap_values.values), axis=(0, 2))
+        shap_mean_abs = pd.Series(mean_abs, index=self.X_test.columns)
+
+        # Parse feature names into components
+        def parse_feature_name(col):
+            parts = col.split("_")
+            if len(parts) >= 3:
+                return parts[0], parts[1], parts[2]
+            else:
+                return "unknown", "unknown", "unknown"
+
+        feat_info = pd.DataFrame(
+            [parse_feature_name(c) for c in self.X_test.columns],
+            columns=["band", "stat", "month"],
+            index=self.X_test.columns
+        )
+
+        # Aggregate SHAP values by parsed feature attributes
+        by_month = shap_mean_abs.groupby(feat_info["month"]).mean().sort_values(ascending=False)
+        by_band = shap_mean_abs.groupby(feat_info["band"]).mean().sort_values(ascending=False).head(10)
+        by_stat = shap_mean_abs.groupby(feat_info["stat"]).mean().sort_values(ascending=False)
+
+        def plot_shap_bar(values, labels, ax, title, color):
+            sns.barplot(x=values, y=labels, ax=ax, color=color)
+            ax.set_title(title, fontsize=14)
+            ax.set_xlabel("Mean |SHAP|")
+            ax.set_ylabel("")
+
+        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+        plot_shap_bar(by_month.values, by_month.index, axes[0], "Mean |SHAP| by Month", "#1f77b4")
+        plot_shap_bar(by_band.values, by_band.index, axes[1], "Mean |SHAP| by Top 10 Bands and Indices", "#76bb74")
+        plot_shap_bar(by_stat.values, by_stat.index, axes[2], "Mean |SHAP| by Statistic", "#8977c5")
+
+        plt.tight_layout()
+        plt.show()
