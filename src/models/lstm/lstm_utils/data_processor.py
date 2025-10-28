@@ -113,6 +113,7 @@ class DataProcessor:
         self.create_sequences_and_weights()
 
         print("\n✅ Feature Columns after Encoding & Scaling:")
+        print(len(self.feature_columns))
         print(self.feature_columns)
 
         return {
