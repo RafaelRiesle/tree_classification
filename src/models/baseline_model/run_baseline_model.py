@@ -15,9 +15,10 @@ from models.baseline_model.baseline_model_utils import drop_unwanted_columns, sp
 from models.baseline_model.calculate_keyfigures import StatisticalFeatures
 from general_utils.constants import spectral_bands, indices
 
-bands_and_indices = spectral_bands + indices 
 
-BASE_DIR = Path(__file__).parents[1]
+bands_and_indices = spectral_bands + indices
+
+BASE_DIR = Path(__file__).resolve().parents[1]
 DATA_PATH = BASE_DIR / "../../data/raw/raw_trainset.csv"
 SPLITS_PATH = BASE_DIR / "../../data/raw/splits"
 PREPROCESSED_PATH = BASE_DIR / "../../data/preprocessed"
@@ -36,18 +37,10 @@ run_preprocessing_pipeline(
     force_split_creation=False,
 )
 
-train_df = pd.read_csv(PREPROCESSED_PATH / "trainset.csv", parse_dates=["time"])
-test_df  = pd.read_csv(PREPROCESSED_PATH / "testset.csv", parse_dates=["time"])
-val_df   = pd.read_csv(PREPROCESSED_PATH / "valset.csv", parse_dates=["time"])
+PATH_TRAIN = PREPROCESSED_PATH / "trainset.csv"
+PATH_TEST = PREPROCESSED_PATH / "testset.csv"
 
-print("Train shape:", train_df.shape)
-print("Test shape:", test_df.shape)
-print("Val shape:", val_df.shape)
-
-PATH_TRAIN = SPLITS_PATH / "trainset.csv"
-PATH_TEST = SPLITS_PATH / "testset.csv"
-
-# Define processing pipeline steps
+# Define processing pipeline
 steps = [
     BasicFeatures(on=True),
     Interpolation(on=True),
@@ -66,9 +59,13 @@ df_test = pipeline_test.run()
 df_train = drop_unwanted_columns(df_train)
 df_test = drop_unwanted_columns(df_test)
 
+# Group by id and calculate keyfigures 
 sf = StatisticalFeatures()
 df_train = sf.calculate_keyfigures_per_id(df_train, bands_and_indices)
 df_test = sf.calculate_keyfigures_per_id(df_test, bands_and_indices)
+
+df_train.to_csv(OUTPUT_DIR / "df_train.csv", index=False)
+df_test.to_csv(OUTPUT_DIR / "df_test.csv", index=False)
 
 # Encode labels
 le = LabelEncoder()
@@ -90,12 +87,12 @@ xgb_baseline_model = xgb.XGBClassifier(
 print("Training model...")
 xgb_baseline_model.fit(X_train, y_train)
 
-# Save trained model
+# Save model
 model_path = OUTPUT_DIR / "baseline_xgb_model.joblib"
 joblib.dump(xgb_baseline_model, model_path)
+xgb_baseline_model.get_booster().save_model(OUTPUT_DIR / "baseline_xgb_model.json")
 
 print("\nModel training complete.")
-print(f"Model saved in: {model_path}\n")
-
+print(f"Model saved at: {model_path}\n")
 
 evaluate_model(xgb_baseline_model, X_test, df_test, le)

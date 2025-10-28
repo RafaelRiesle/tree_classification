@@ -20,7 +20,7 @@ dependencies = [
     "seaborn",
     "statsmodels",
     "scikit-learn",
-    "xgboost",
+    "xgboost==3.0.5",
     "tsaug",
     "torch",
     "tensorboard",
@@ -30,7 +30,8 @@ dependencies = [
     "pytorch_lightning",
     "lightgbm",
     "tqdm_joblib",
-    "shap"
+    "shap",
+    captum=0.7.0
 ]
 
 [tool.setuptools.packages.find]
