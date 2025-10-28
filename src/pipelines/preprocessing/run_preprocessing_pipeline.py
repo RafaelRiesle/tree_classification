@@ -106,7 +106,7 @@ def run_preprocessing_pipeline(
     test_ratio: float = 0.2,
     val_ratio: float = 0.1,
     remove_outliers: bool = False,
-    contamination: float = 0.05,
+    contamination: float = 0.01,
     force_split_creation: bool = False,
     years: list[int] | None = None,
     force_preprocessing=True,

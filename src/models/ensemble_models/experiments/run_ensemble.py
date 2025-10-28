@@ -17,7 +17,8 @@ def define_models():
         (
             RandomForestClassifier,
             {
-                "n_estimators": [200]
+                "n_estimators": [200],
+                "criterion":["gini"]
 
             },
         ),

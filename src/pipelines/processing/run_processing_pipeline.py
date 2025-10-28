@@ -46,28 +46,29 @@ def run_processing():
     }
 
     test_steps = [
-        BasicFeatures(on=False),
+        BasicFeatures(on=True),
         TimeSeriesAggregate(on=True, freq=2, method="mean"),
         InterpolateNaNs(on=True, method="linear"),
+        Smooth(on=True, overwrite=True),
         CalculateIndices(on=True),
-        TemporalFeatures(on=True),
+        TemporalFeatures(on=False),
         Interpolation(on=True),
     ]
 
     train_steps = [
-        TimeSeriesFilter(on=False),
-        BasicFeatures(on=False),
+        TimeSeriesFilter(on=True, max_median_diff_days=25),
+        BasicFeatures(on=True),
         OldDisturbancePruner(on=False),
-        CalculateIndices(on=False),
+        CalculateIndices(on=True),
         DetectDisturbedTrees(on=False),
         AdjustLabels(on=False),
         DataAugmentation(on=False, threshold=150),
         TimeSeriesAggregate(on=True, freq=2, method="mean"),
         InterpolateNaNs(on=True, method="linear"),
-        Smooth(on=False, overwrite=False),
+        Smooth(on=True, overwrite=True),
         Interpolation(on=True),
         CalculateIndices(on=True),
-        TemporalFeatures(on=True),
+        TemporalFeatures(on=False),
     ]
     for split_name, path_dict in split_to_paths.items():
         input_path = path_dict["input"]
