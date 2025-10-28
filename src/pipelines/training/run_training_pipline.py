@@ -20,7 +20,7 @@ class TrainingPipeline:
         force_split_creation: bool = False,
         force_preprocessing: bool = False,
         force_processing: bool = False,
-        batch_size: int = 32,
+        batch_size: int = 64,
         lr: float = 1e-3,
         max_epochs: int = 50,
     ):
@@ -89,18 +89,19 @@ class TrainingPipeline:
         print("=== Starting Training Pipeline ===")
         self.run_preprocessing()
         self.run_processing()
-        # self.run_pyts()
-        # self.run_lstm()
-        self.run_ensemble_model()
+        #self.run_pyts()
+        #self.run_ensemble_model()
+        self.run_lstm()
+
         print("=== Training Pipeline Finished ===")
 
 
 if __name__ == "__main__":
     pipeline = TrainingPipeline(
-        sample_size=1000,
+        sample_size=None,
         remove_outliers=False,
-        force_split_creation=True,
-        force_preprocessing=True,
-        force_processing=True,
+        force_split_creation=False,
+        force_preprocessing=False,
+        force_processing=False,
     )
     pipeline.run()
