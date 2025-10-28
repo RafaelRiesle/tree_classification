@@ -1,5 +1,6 @@
 # Ignore project-specific datasets and outputs
 data/*
+shap_plots/
 
 # Ignore virtual environments
 .venv/

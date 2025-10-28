@@ -12,6 +12,8 @@ from sklearn.metrics import (
     classification_report,
     balanced_accuracy_score,
 )
+from captum.attr import IntegratedGradients
+
 
 
 BASE_DIR = Path(__file__).parents[4]
@@ -192,3 +194,78 @@ class ModelEvaluator:
         print(classification_report(all_labels, all_preds))
 
         return metrics
+
+    def integrated_gradients_analysis(
+        self, target_classes, split="test", n_samples=5, save_plots=True
+    ):
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model.to(device)
+        self.model.eval()
+
+        ig = IntegratedGradients(self.model)
+
+        if split == "train":
+            data_loader = self.data_module.train_dataloader()
+        elif split == "val":
+            data_loader = self.data_module.val_dataloader()
+        else:
+            data_loader = self.data_module.test_dataloader()
+
+        results = []
+
+        # n_samples Beispiele aus Testset
+        collected = 0
+        for batch in data_loader:
+            x = batch["sequence"].to(device)
+            y = batch["label"].to(device)
+            with torch.no_grad():
+                outputs = self.model(x)
+                preds = torch.argmax(outputs, dim=1)
+            for i in range(x.size(0)):
+                if collected >= n_samples:
+                    break
+                x_sample = x[i:i+1]
+                label = y[i].item()
+                pred = preds[i].item()
+                collected += 1
+
+                # Für jede Zielklasse IG berechnen
+                for target_class in target_classes:
+                    baseline = torch.zeros_like(x_sample).to(device)
+                    attributions, _ = ig.attribute(
+                        inputs=x_sample,
+                        baselines=baseline,
+                        target=target_class,
+                        return_convergence_delta=True,
+                    )
+
+                    # Heatmap plotten & speichern
+                    if save_plots:
+                        self._plot_integrated_gradients_heatmap(
+                            attributions, i, label, pred, target_class
+                        )
+
+                    results.append({
+                        "sample_idx": i,
+                        "true": label,
+                        "pred": pred,
+                        "target": target_class,
+                        "attributions": attributions.detach().cpu().numpy()
+                    })
+        return results
+
+
+    def _plot_integrated_gradients_heatmap(self, attributions, sample_idx, true_label, pred_label, target_class):
+        attr = attributions.squeeze().cpu().detach().numpy()
+        vmax = np.percentile(np.abs(attr), 99)
+        vmin = -vmax
+
+        plt.figure(figsize=(12, 5))
+        im = plt.imshow(attr, cmap="coolwarm", aspect="auto", vmin=vmin, vmax=vmax)
+        plt.colorbar(im, label="Attribution Value")
+        plt.xlabel("Features")
+        plt.ylabel("Sequence Steps")
+        plt.title(f"IG - Sample {sample_idx} | True: {true_label} | Pred: {pred_label} | Target: {target_class}")
+        path = self.save_dir / f"IG_sample{sample_idx}_target{target_class}.png"
+        plt.savefig(path, bbox_inches="tight", dpi=200)
+        plt.close()
