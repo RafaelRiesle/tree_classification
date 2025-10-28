@@ -5,7 +5,7 @@ class TimeSeriesFilter:
     Removes time series with large median time gaps.
     """
 
-    def __init__(self, time_col="time", id_col="id", max_median_diff_days=18, on=True):
+    def __init__(self, time_col="time", id_col="id", max_median_diff_days=25, on=True):
         self.on = on
         self.time_col = time_col
         self.id_col = id_col

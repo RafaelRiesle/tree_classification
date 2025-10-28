@@ -8,7 +8,6 @@ import xgboost as xgb
 from pipelines.processing.features.basic_features import BasicFeatures
 from general_utils.constants import spectral_bands, indices
 
-# TODO: Model anpassen, dass eher is_disturbed predicted wird
 class DetectDisturbedTrees:
     def __init__(self, on=True, scale_pos_weight=4, random_state=42):
         self.on = on
@@ -76,7 +75,7 @@ class DetectDisturbedTrees:
 
         healthy = healthy.copy()
         healthy["combi_top_features"] = healthy[top_features].mean(axis=1)
-        subset_size = min(10000, len(healthy)) # TODO: analyse why 10.000 not possible 
+        subset_size = min(10000, len(healthy))
         healthy_sub = (
             healthy.sort_values(by="combi_top_features")
             .head(20000)

@@ -56,7 +56,7 @@ class TrainingPipeline:
         )
 
     def run_processing(self):
-        run_processing_pipeline(force_processing=self.force_preprocessing)
+        run_processing_pipeline(force_processing=self.force_processing)
 
     def run_ensemble_model(self):
         print("Training ensemble models...")
