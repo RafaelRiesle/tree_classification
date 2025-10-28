@@ -3,6 +3,14 @@ import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    classification_report,
+)
+
 
 
 BASE_DIR = Path(__file__).parents[4]
@@ -114,3 +122,48 @@ class ModelEvaluator:
             correct += (preds == y).sum().item()
             total += y.size(0)
         return correct / total
+    
+    def evaluate_metrics(self):
+        """Berechnet verschiedene Testmetriken."""
+        self.model.eval()
+        all_labels, all_preds, all_probs = [], [], []
+
+        for batch in self.data_module.test_dataloader():
+            x = batch["sequence"].to(self.device)
+            y = batch["label"].to(self.device)
+
+            with torch.no_grad():
+                outputs = self.model(x)
+                probs = torch.softmax(outputs, dim=1)
+                preds = torch.argmax(probs, dim=1)
+
+            all_labels.extend(y.cpu().numpy())
+            all_preds.extend(preds.cpu().numpy())
+            all_probs.extend(probs[:, 1].cpu().numpy())  # falls binäre Klassifikation
+
+        # In NumPy konvertieren
+        all_labels = np.array(all_labels)
+        all_preds = np.array(all_preds)
+        all_probs = np.array(all_probs)
+
+        # Verschiedene Metriken berechnen
+        metrics = {
+            "accuracy": np.mean(all_preds == all_labels),
+            "precision": precision_score(all_labels, all_preds, average="weighted"),
+            "recall": recall_score(all_labels, all_preds, average="weighted"),
+            "f1_score": f1_score(all_labels, all_preds, average="weighted"),
+        }
+
+        # ROC-AUC nur für binäre Klassifikation
+        if len(np.unique(all_labels)) == 2:
+            metrics["roc_auc"] = roc_auc_score(all_labels, all_probs)
+
+        print("\n📊 Test Metrics:")
+        for k, v in metrics.items():
+            print(f"{k:>10}: {v:.4f}")
+
+        print("\n🧾 Classification Report:")
+        print(classification_report(all_labels, all_preds))
+
+        return metrics
+
