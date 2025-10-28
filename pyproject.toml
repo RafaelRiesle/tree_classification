@@ -30,7 +30,8 @@ dependencies = [
     "pytorch_lightning",
     "lightgbm",
     "tqdm_joblib",
-    "shap"
+    "shap",
+    captum=0.7.0
 ]
 
 [tool.setuptools.packages.find]
