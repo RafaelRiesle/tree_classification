@@ -1,124 +1,144 @@
 import pandas as pd
 import numpy as np
-from scipy.interpolate import CubicSpline
-from dtaidistance import dtw_ndim
-from tqdm.auto import tqdm
+from tsaug import Drift, AddNoise
+from scipy.interpolate import interp1d
+import warnings
+from tqdm import tqdm
+from collections import Counter
 from general_utils.constants import spectral_bands
 
-class TimeSeriesAugmenter:
-    def __init__(self, data: pd.DataFrame, 
-                 id_col: str = "id", 
-                 time_col: str = "time", 
-                 value_cols: list = spectral_bands, 
-                 class_col: str= "species"):
-        self.id_col = id_col
-        self.time_col = time_col
-        self.value_cols = value_cols
-        self.class_col = class_col
-        self.data = data.copy()
-        self.data[self.time_col] = pd.to_datetime(self.data[self.time_col])
-        self.data = self.data.sort_values(by=[self.id_col, self.time_col])
+warnings.filterwarnings("ignore")
 
-    def _densify_series(self, series: pd.DataFrame, target_points: int, noise_level: float) -> pd.DataFrame:
-        if series[self.time_col].duplicated().any():
-            series = series.groupby(self.time_col)[self.value_cols].mean().reset_index()
 
-        x_numeric = series[self.time_col].astype(np.int64) // 10**9
-        new_x_numeric = np.linspace(x_numeric.min(), x_numeric.max(), target_points)
-        new_time_index = pd.to_datetime(new_x_numeric, unit='s')
-        
-        densified_data = {self.time_col: new_time_index}
+class DataAugmentation:
+    def __init__(self, on=True, scale=0.02, drift=0.01, random_state=42):
+        self.on = on
+        self.scale = scale
+        self.drift = drift
+        self.rng = np.random.default_rng(
+            random_state
+        )  # Besserer Weg zur Verwaltung von Zufälligkeit
 
-        for col in self.value_cols:
-            y = series[col]
-            if len(series) < 3:
-                interpolated_values = np.interp(new_x_numeric, x_numeric, y)
+    def _make_augmenter(self):
+        """Erstellt einen Augmenter mit Drift und Rauschen."""
+        # WICHTIG: Wir erzeugen hier für jeden Aufruf neue Integer-Seeds aus unserem Generator.
+        # So ist jede Augmentierung anders, aber der gesamte Lauf bleibt reproduzierbar.
+        seed1 = self.rng.integers(np.iinfo(np.int32).max)
+        seed2 = self.rng.integers(np.iinfo(np.int32).max)
+
+        return Drift(max_drift=self.drift, seed=seed1) + AddNoise(
+            scale=self.scale, seed=seed2
+        )
+
+    def _resample_time_series(
+        self, df_id: pd.DataFrame, time_index_aug: pd.DatetimeIndex, augmenter
+    ) -> pd.DataFrame:
+        """Resampelt und augmentiert die Zeitreihe einer einzelnen ID."""
+        df_id = df_id.sort_values("time").reset_index(drop=True)
+
+        # Sicherheitsabfrage: Mindestens 2 Punkte für Interpolation nötig
+        if len(df_id) < 2:
+            return None
+
+        aug_data = {"time": time_index_aug}
+
+        for col in spectral_bands:
+            # Originaldaten vorbereiten
+            y = df_id[col].interpolate(method="linear").to_numpy(dtype=np.float64)
+            x = df_id["time"].view(np.int64)
+
+            # Augmentierung anwenden
+            y_aug = augmenter.augment(y.reshape(1, -1, 1)).flatten()
+
+            # Interpolation - SICHERER ANSATZ OHNE EXTRAPOLATION
+            f = interp1d(
+                x,
+                y_aug,
+                kind="linear",
+                bounds_error=False,  # Kein Fehler bei Werten außerhalb des Bereichs
+                fill_value=(y_aug[0], y_aug[-1]),  # Fülle mit erstem/letztem Wert
+            )
+            aug_data[col] = f(time_index_aug.view(np.int64))
+
+        return pd.DataFrame(aug_data)
+
+    def run(
+        self, df: pd.DataFrame, target_len=152, target_ids_per_species=None
+    ) -> pd.DataFrame:
+        """
+        Führt die Augmentierung durch, um die Anzahl der IDs pro Spezies auszugleichen.
+        Alle Zeitreihen werden auf eine einheitliche Länge und Zeitachse gebracht.
+        """
+        if not self.on:
+            return df
+
+        df["time"] = pd.to_datetime(df["time"])
+
+        # 1. Bestimme die Ziel-ID-Anzahl pro Spezies
+        species_id_counts = df.groupby("species")["id"].nunique()
+        if target_ids_per_species is None:
+            target_ids_per_species = species_id_counts.max()
+        print(f"Ziel-Anzahl von IDs pro Spezies: {target_ids_per_species}")
+
+        # 2. Erstelle eine Liste der zu erzeugenden IDs
+        ids_to_generate = []
+        original_ids = []
+        for species, group in df.groupby("species"):
+            unique_ids = group["id"].unique()
+            original_ids.extend(unique_ids)
+
+            n_current = len(unique_ids)
+            n_to_add = target_ids_per_species - n_current
+
+            if n_to_add > 0:
+                # Füge Original-IDs hinzu
+                ids_to_generate.extend([(species, old_id) for old_id in unique_ids])
+                # Füge neue, zu generierende IDs hinzu (basierend auf zufälliger Auswahl)
+                chosen_ids = self.rng.choice(unique_ids, size=n_to_add, replace=True)
+                ids_to_generate.extend([(species, old_id) for old_id in chosen_ids])
             else:
-                cs = CubicSpline(x_numeric, y)
-                interpolated_values = cs(new_x_numeric)
-            
-            noise = np.random.normal(0, np.std(y) * noise_level, len(interpolated_values))
-            densified_data[col] = interpolated_values + noise
+                # Wenn Spezies bereits genug IDs hat, nimm alle Original-IDs
+                # Optional: Man könnte hier auch auf target_ids_per_species undersamplen
+                ids_to_generate.extend([(species, old_id) for old_id in unique_ids])
 
-        return pd.DataFrame(densified_data)
+        # 3. Bereite die finale Zeitachse vor (global für alle!)
+        start_time = df["time"].min()
+        time_index_aug = pd.date_range(start=start_time, periods=target_len, freq="14D")
 
-    def _create_synthetic_smote_series(self, base_series: np.ndarray, neighbor_series: np.ndarray) -> np.ndarray:
-        lambda_val = np.random.rand()
-        return base_series + lambda_val * (neighbor_series - base_series)
+        # 4. Verarbeite alle IDs (Originale und zu erzeugende)
+        augmented_dfs = []
+        id_augmentation_counter = Counter()
 
+        # Gruppiere nach der Original-ID für effizienten Zugriff
+        df_grouped_by_id = df.groupby("id")
 
-    def augment(self, target_points_per_series: int = 152, noise_level: float = 0.05, k_neighbors: int = 3):
-        augmented_data_list = []
-        grouped_data = self.data.groupby(self.id_col)
-        for id_val, group in tqdm(grouped_data, desc="Processing Time Series"):
-            densified_group = self._densify_series(group, target_points_per_series, noise_level)
-            densified_group[self.id_col] = id_val
-            densified_group[self.class_col] = group[self.class_col].iloc[0]
-            augmented_data_list.append(densified_group)
+        print("Resampling und Augmentierung aller Zeitreihen...")
+        for species, tree_id in tqdm(ids_to_generate):
+            df_id_original = df_grouped_by_id.get_group(tree_id)
 
-        densified_df = pd.concat(augmented_data_list, ignore_index=True)
+            # Jeder Durchlauf bekommt einen neuen Augmenter für unterschiedliche Ergebnisse
+            augmenter = self._make_augmenter()
 
-        id_to_class = self.data.drop_duplicates(subset=[self.id_col]).set_index(self.id_col)[self.class_col]
-        class_counts = id_to_class.value_counts()
-        
+            df_aug = self._resample_time_series(
+                df_id_original, time_index_aug, augmenter
+            )
 
-        target_count = class_counts.max()
-        print(f"Class distribution before processing:\n{class_counts}")
-        print(f"Target ID count: {target_count}\n")
+            if df_aug is None:
+                continue  # Überspringe, wenn die Zeitreihe zu kurz war
 
-        series_by_class = {}
-        for class_val in id_to_class.unique():
-            ids_in_class = id_to_class[id_to_class == class_val].index
-            series_in_class = [
-                densified_df[densified_df[self.id_col] == id_val][self.value_cols].values[:target_points_per_series]
-                for id_val in ids_in_class
-            ]
-            series_by_class[class_val] = series_in_class
+            # Zähle, wie oft diese ID schon verwendet wurde, um neue, einzigartige IDs zu erstellen
+            id_augmentation_counter[tree_id] += 1
+            count = id_augmentation_counter[tree_id]
 
-        newly_generated_series = []
-        next_new_id = self.data[self.id_col].max() + 1 if pd.api.types.is_numeric_dtype(self.data[self.id_col]) else f"syn_{len(self.data[self.id_col].unique())}"
+            if count > 1:
+                # Dies ist eine augmentierte Kopie
+                df_aug["id"] = f"{tree_id}_aug_{count - 1}"
+            else:
+                # Dies ist die (resampelte) Original-ID
+                df_aug["id"] = tree_id
 
-        for class_val, count in class_counts.items():
-            if count < target_count:
-                n_to_generate = target_count - count
-                minority_series_list = series_by_class[class_val]
-                pbar = tqdm(range(n_to_generate), desc=f"Generiere für Klasse '{class_val}'")
-                
-                if len(minority_series_list) < 2:
-                    for _ in pbar:
-                        base_series_data = minority_series_list[_ % len(minority_series_list)]
-                        noise = np.random.normal(0, np.std(base_series_data, axis=0) * noise_level, base_series_data.shape)
-                        new_df = pd.DataFrame(base_series_data + noise, columns=self.value_cols)
-                        new_df[self.time_col] = pd.date_range(start=self.data[self.time_col].min(), periods=len(new_df), freq='H')
-                        new_df[self.id_col] = next_new_id
-                        new_df[self.class_col] = class_val
-                        newly_generated_series.append(new_df)
-                        next_new_id = (next_new_id + 1) if isinstance(next_new_id, int) else f"syn_{len(self.data[self.id_col].unique()) + _ + 1}"
-                    continue
+            df_aug["species"] = species
+            augmented_dfs.append(df_aug)
 
-                for _ in pbar:
-                    random_idx = np.random.randint(0, len(minority_series_list))
-                    base_series = minority_series_list[random_idx]
-                    distances = [dtw_ndim.distance(base_series, other) for other in minority_series_list]
-                    neighbor_indices = np.argsort(distances)[1:k_neighbors+1]
-                    chosen_neighbor_idx = np.random.choice(neighbor_indices)
-                    neighbor_series = minority_series_list[chosen_neighbor_idx]
-                    synthetic_values = self._create_synthetic_smote_series(base_series, neighbor_series)
-                    
-                    new_df = pd.DataFrame(synthetic_values, columns=self.value_cols)
-                    new_df[self.time_col] = pd.date_range(start=self.data[self.time_col].min(), periods=len(new_df), freq='H')
-                    new_df[self.id_col] = next_new_id
-                    new_df[self.class_col] = class_val
-                    newly_generated_series.append(new_df)
-                    next_new_id = (next_new_id + 1) if isinstance(next_new_id, int) else f"syn_{len(self.data[self.id_col].unique()) + _ + 1}"
-
-        if newly_generated_series:
-            final_df = pd.concat([densified_df] + newly_generated_series, ignore_index=True)
-        else:
-            final_df = densified_df
-
-        print("\nAugmenting finished")
-        final_id_to_class = final_df.drop_duplicates(subset=[self.id_col]).set_index(self.id_col)[self.class_col]
-        print(f"Class distribution after processing:\n{final_id_to_class.value_counts()}")
-        
-        return final_df
+        df_final = pd.concat(augmented_dfs, ignore_index=True)
+        return df_final
