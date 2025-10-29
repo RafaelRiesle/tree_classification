@@ -26,7 +26,7 @@ def evaluate_time_windows(df):
         X, y, groups = subset[spectral_bands], subset["species_disturbed"], subset["id"]
         gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
         train_idx, test_idx = next(gss.split(X, y, groups=groups))
-        model = RandomForestClassifier(random_state=42, class_weight="balanced", n_estimators=10)
+        model = RandomForestClassifier(random_state=42, class_weight="balanced", n_estimators=30)
         model.fit(X.iloc[train_idx], y.iloc[train_idx])
         preds = model.predict(X.iloc[test_idx])
         acc = balanced_accuracy_score(y.iloc[test_idx], preds)
