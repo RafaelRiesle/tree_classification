@@ -15,7 +15,6 @@ from sklearn.metrics import (
 from captum.attr import IntegratedGradients
 
 
-
 BASE_DIR = Path(__file__).parents[4]
 RESULTS_DIR = BASE_DIR / "data/lstm_training/results"
 
@@ -39,7 +38,9 @@ class ModelEvaluator:
         epochs = range(1, min_len + 1)
         plt.figure(figsize=(10, 6))
         plt.plot(epochs, self.model.train_acc_history[:min_len], label="Train Accuracy")
-        plt.plot(epochs, self.model.val_acc_history[:min_len], label="Validation Accuracy")
+        plt.plot(
+            epochs, self.model.val_acc_history[:min_len], label="Validation Accuracy"
+        )
         plt.plot(
             epochs,
             self.model.train_loss_history[:min_len],
@@ -169,7 +170,7 @@ class ModelEvaluator:
             if probs.shape[1] > 1:
                 all_probs.extend(probs[:, 1].cpu().numpy())
             else:
-                all_probs.extend([0]*len(y))
+                all_probs.extend([0] * len(y))
 
         all_labels = np.array(all_labels)
         all_preds = np.array(all_preds)
@@ -224,7 +225,7 @@ class ModelEvaluator:
             for i in range(x.size(0)):
                 if collected >= n_samples:
                     break
-                x_sample = x[i:i+1]
+                x_sample = x[i : i + 1]
                 label = y[i].item()
                 pred = preds[i].item()
                 collected += 1
@@ -245,17 +246,20 @@ class ModelEvaluator:
                             attributions, i, label, pred, target_class
                         )
 
-                    results.append({
-                        "sample_idx": i,
-                        "true": label,
-                        "pred": pred,
-                        "target": target_class,
-                        "attributions": attributions.detach().cpu().numpy()
-                    })
+                    results.append(
+                        {
+                            "sample_idx": i,
+                            "true": label,
+                            "pred": pred,
+                            "target": target_class,
+                            "attributions": attributions.detach().cpu().numpy(),
+                        }
+                    )
         return results
 
-
-    def _plot_integrated_gradients_heatmap(self, attributions, sample_idx, true_label, pred_label, target_class):
+    def _plot_integrated_gradients_heatmap(
+        self, attributions, sample_idx, true_label, pred_label, target_class
+    ):
         attr = attributions.squeeze().cpu().detach().numpy()
         vmax = np.percentile(np.abs(attr), 99)
         vmin = -vmax
@@ -265,7 +269,9 @@ class ModelEvaluator:
         plt.colorbar(im, label="Attribution Value")
         plt.xlabel("Features")
         plt.ylabel("Sequence Steps")
-        plt.title(f"IG - Sample {sample_idx} | True: {true_label} | Pred: {pred_label} | Target: {target_class}")
+        plt.title(
+            f"IG - Sample {sample_idx} | True: {true_label} | Pred: {pred_label} | Target: {target_class}"
+        )
         path = self.save_dir / f"IG_sample{sample_idx}_target{target_class}.png"
         plt.savefig(path, bbox_inches="tight", dpi=200)
         plt.close()

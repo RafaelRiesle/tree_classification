@@ -26,21 +26,20 @@ class TemporalFeatures:
         df["month_sin"] = np.sin(2 * np.pi * df["month_num"] / 12)
         df["month_cos"] = np.cos(2 * np.pi * df["month_num"] / 12)
         return df
-    
+
     def biweek_sin_cos(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df["biweek_of_year"] = df["time"].dt.isocalendar().week // 2 + 1
         df["biweek_sin"] = np.sin(2 * np.pi * df["biweek_of_year"] / 26)
         df["biweek_cos"] = np.cos(2 * np.pi * df["biweek_of_year"] / 26)
         return df
-    
+
     def calc_sin_cos(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df["week_of_year"] = df["time"].dt.isocalendar().week.astype(int)
         df["week_sin"] = np.sin(2 * np.pi * df["week_of_year"] / 52)
         df["week_cos"] = np.cos(2 * np.pi * df["week_of_year"] / 52)
         return df
-   
 
     def date_diff(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
@@ -58,9 +57,9 @@ class TemporalFeatures:
         if not self.on:
             return df
         df = self.month_and_season(df)
-        #df = self.month_sin_cos(df)
+        # df = self.month_sin_cos(df)
         df = self.biweek_sin_cos(df)
-        #df = self.calc_sin_cos(df)
+        # df = self.calc_sin_cos(df)
         df = self.date_diff(df)
         df = self.growing_season(df)
         return df

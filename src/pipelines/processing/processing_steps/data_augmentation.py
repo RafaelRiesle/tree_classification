@@ -19,14 +19,16 @@ class DataAugmentation:
     def _make_augmenter(self):
         return Drift(max_drift=self.drift) + AddNoise(scale=self.scale)
 
-    def resample_time_series(self, df_species, spectral_bands, max_len, augmenter, start_time):
+    def resample_time_series(
+        self, df_species, spectral_bands, max_len, augmenter, start_time
+    ):
         df_species = df_species.sort_values("time").reset_index(drop=True)
         time_aug = pd.date_range(start_time, df_species["time"].max(), periods=max_len)
 
         aug_data = {
             "species": df_species["species"].iloc[0],
             "id": df_species["id"].iloc[0],
-            "time": time_aug
+            "time": time_aug,
         }
 
         for col in spectral_bands:
@@ -42,14 +44,13 @@ class DataAugmentation:
                     df_species["time"].view(np.int64),
                     Y_aug,
                     kind="linear",
-                    fill_value="extrapolate"
+                    fill_value="extrapolate",
                 )
                 aug_data[col] = f(time_aug.view(np.int64))
             except Exception:
                 aug_data[col] = np.full(max_len, np.nan)
 
         return pd.DataFrame(aug_data)
-
 
     def balance_species_ids(self, df, target_size=None, random_state=42):
         np.random.seed(random_state)
@@ -72,9 +73,13 @@ class DataAugmentation:
 
         return balanced_mapping
 
-
-
-    def augment(self, df: pd.DataFrame, spectral_bands=spectral_bands, max_len=152, random_state=42):
+    def augment(
+        self,
+        df: pd.DataFrame,
+        spectral_bands=spectral_bands,
+        max_len=152,
+        random_state=42,
+    ):
         np.random.seed(random_state)
         df["time"] = pd.to_datetime(df["time"])
 
@@ -82,16 +87,20 @@ class DataAugmentation:
         augmented_dfs = []
         start_time = df.time.min()
 
-        for species, ids_to_process in tqdm.tqdm(balanced_ids.items(), desc="Augmenting species"):
+        for species, ids_to_process in tqdm.tqdm(
+            balanced_ids.items(), desc="Augmenting species"
+        ):
             species_df = df[df["species"] == species]
             augmenter = self._make_augmenter()
             id_augmentation_counter = {}
 
             for tree_id in ids_to_process:
                 df_species = species_df[species_df["id"] == tree_id]
-                df_aug = self.resample_time_series(df_species, spectral_bands, max_len, augmenter, start_time)
+                df_aug = self.resample_time_series(
+                    df_species, spectral_bands, max_len, augmenter, start_time
+                )
                 is_duplicated = list(ids_to_process).count(tree_id) > 1
-                
+
                 if is_duplicated:
                     count = id_augmentation_counter.get(tree_id, 0) + 1
                     id_augmentation_counter[tree_id] = count
@@ -108,7 +117,7 @@ class DataAugmentation:
         """Run augmentation only for IDs with fewer samples than threshold."""
         if not self.on:
             return df
-        
+
         id_counts = df.groupby("id").size()
         ids_to_augment = id_counts[id_counts < self.threshold].index
         ids_no_augment = id_counts[id_counts >= self.threshold].index
@@ -120,4 +129,4 @@ class DataAugmentation:
         df_final = pd.concat([df_no_augment, df_augmented], ignore_index=True)
 
         df_final["id"] = df_final["id"].astype(str)
-        return df_final 
+        return df_final

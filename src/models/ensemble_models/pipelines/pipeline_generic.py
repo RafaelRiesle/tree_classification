@@ -62,7 +62,6 @@ class GenericPipeline:
         X_test, y_test = self.pipeline.transform(test_df)
         X_val, y_val = self.pipeline.transform(val_df)
 
-
         feature_names = (
             X_train.columns
             if hasattr(X_train, "columns")
@@ -77,7 +76,9 @@ class GenericPipeline:
 
             # GridSearch falls nötig
             if any(isinstance(v, (list, tuple)) for v in params.values()):
-                grid = GridSearchCV(model_class(), params, cv=3, n_jobs=-1, scoring="accuracy")
+                grid = GridSearchCV(
+                    model_class(), params, cv=3, n_jobs=-1, scoring="accuracy"
+                )
                 grid.fit(X_train, y_train)
                 hyperparams = grid.best_params_
                 print(f"Best hyperparameters: {hyperparams}")
@@ -85,7 +86,9 @@ class GenericPipeline:
                 hyperparams = params
 
             # Modell trainieren
-            model, _ = self.ensemble.train_and_predict(model_class, hyperparams, X_train, y_train, X_train)
+            model, _ = self.ensemble.train_and_predict(
+                model_class, hyperparams, X_train, y_train, X_train
+            )
 
             # Verschiedene Datensätze bewerten
             train_pred = model.predict(X_train)
@@ -96,8 +99,14 @@ class GenericPipeline:
             test_metrics = self.ensemble.compute_metrics(y_test, test_pred)
             val_metrics = self.ensemble.compute_metrics(y_val, val_pred)
 
-            feat_imp_df = self.ensemble.extract_feature_importances(model, feature_names)
-            feat_imp = feat_imp_df.to_dict(orient="records") if feat_imp_df is not None else None
+            feat_imp_df = self.ensemble.extract_feature_importances(
+                model, feature_names
+            )
+            feat_imp = (
+                feat_imp_df.to_dict(orient="records")
+                if feat_imp_df is not None
+                else None
+            )
 
             n_samples, n_features = X_train.shape
 
@@ -109,8 +118,10 @@ class GenericPipeline:
                 "feature_importances": feat_imp,
             }
 
-
-            model_file = self.ensemble.results_dir / f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
+            model_file = (
+                self.ensemble.results_dir
+                / f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
+            )
             joblib.dump(model, model_file)
 
             model_dict = {

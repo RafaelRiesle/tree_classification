@@ -97,7 +97,9 @@ class DataReductionAnalysis:
         df_results = pd.DataFrame(results)
 
         plt.figure(figsize=(8, 5))
-        plt.bar(df_results["label"], df_results["acc"], color="royalblue", edgecolor="black")
+        plt.bar(
+            df_results["label"], df_results["acc"], color="royalblue", edgecolor="black"
+        )
         plt.title(title)
         plt.xlabel(xlabel)
         plt.ylabel("Balanced Accuracy")
@@ -105,8 +107,6 @@ class DataReductionAnalysis:
         plt.grid(axis="y", linestyle="--", alpha=0.7)
         plt.tight_layout()
         plt.show()
-
-
 
     def train_single_years(self):
         data_splits = [

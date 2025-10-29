@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class InterpolateNaNs:
     def __init__(self, on=True, method="linear"):
         self.on = on

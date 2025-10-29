@@ -8,6 +8,7 @@ import xgboost as xgb
 from pipelines.processing.features.basic_features import BasicFeatures
 from general_utils.constants import spectral_bands, indices
 
+
 # TODO: Model anpassen, dass eher is_disturbed predicted wird
 class DetectDisturbedTrees:
     def __init__(self, on=True, scale_pos_weight=4, random_state=42):
@@ -18,7 +19,6 @@ class DetectDisturbedTrees:
         self.model = None
 
         self.basic_features = BasicFeatures(on=on)
-
 
     def scale_data(self, df):
         df_scaled = df.copy()
@@ -76,7 +76,7 @@ class DetectDisturbedTrees:
 
         healthy = healthy.copy()
         healthy["combi_top_features"] = healthy[top_features].mean(axis=1)
-        subset_size = min(10000, len(healthy)) # TODO: analyse why 10.000 not possible 
+        subset_size = min(10000, len(healthy))  # TODO: analyse why 10.000 not possible
         healthy_sub = (
             healthy.sort_values(by="combi_top_features")
             .head(20000)
@@ -141,7 +141,7 @@ class DetectDisturbedTrees:
     def run(self, df):
         if not self.on:
             return df
-        
+
         df = self.basic_features.add_disturbance_flag(df)
         full_df = self.prepare_data(df)
         train_df = self.get_balanced_train_data(full_df)
@@ -155,7 +155,7 @@ class DetectDisturbedTrees:
         disturbed_ids = df_pred.loc[df_pred["is_disturbed_pred"] == True, "id"].unique()
         n_deleted = len(disturbed_ids)
         print(f"{n_deleted} ids have been removed due to predicted disturbance")
-        
+
         df_final = df[~df["id"].isin(disturbed_ids)].copy()
 
         return df_final

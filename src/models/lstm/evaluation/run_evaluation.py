@@ -7,7 +7,9 @@ from models.lstm.evaluation.model_evaluator import ModelEvaluator
 
 BASE_DIR = Path(__file__).parents[4]
 
-CHECKPOINT_PATH = BASE_DIR / "data/lstm_training/results/species_model-epoch=33-val_loss=0.2559.ckpt"
+CHECKPOINT_PATH = (
+    BASE_DIR / "data/lstm_training/results/species_model-epoch=33-val_loss=0.2559.ckpt"
+)
 TRAIN_PATH = BASE_DIR / "data/processed/trainset.csv"
 VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 TEST_PATH = BASE_DIR / "data/processed/testset.csv"
@@ -38,7 +40,9 @@ def evaluate_only(ckpt_path=CHECKPOINT_PATH, batch_size=32, lr=1e-3):
     )
 
     # -------------------- Evaluator --------------------
-    evaluator = ModelEvaluator(model, data_module, feature_columns=data_info["feature_columns"])
+    evaluator = ModelEvaluator(
+        model, data_module, feature_columns=data_info["feature_columns"]
+    )
 
     # -------------------- Evaluation --------------------
     for split in ["test", "val"]:
@@ -49,11 +53,11 @@ def evaluate_only(ckpt_path=CHECKPOINT_PATH, batch_size=32, lr=1e-3):
             target_classes=list(range(data_info["n_classes"])),
             n_samples=1,
             split=split,
-            save_plots=True  
+            save_plots=True,
         )
 
         # ---- Permutation Importance ----
-        #evaluator.permutation_importance(split=split)
+        # evaluator.permutation_importance(split=split)
 
     print("\n✅ Finished Evaluation.")
 

@@ -3,6 +3,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+
 class PaddedSpeciesDataset(Dataset):
     def __init__(self, sequences, pad_value=0.0, max_len=None):
         self.sequences = sequences
@@ -26,4 +27,3 @@ class PaddedSpeciesDataset(Dataset):
             "label": torch.tensor(y, dtype=torch.long),
             "length": seq_len,
         }
-

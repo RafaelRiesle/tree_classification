@@ -12,6 +12,7 @@ TEST_PATH = BASE_DIR / "data/processed/testset.csv"
 VAL_PATH = BASE_DIR / "data/processed/valset.csv"
 SAVE_DIR = BASE_DIR / "data/pyts/models"
 
+
 class PytsModelPipeline:
     def __init__(
         self,
@@ -63,10 +64,8 @@ class PytsModelPipeline:
         self.model.save_feature_importances_plot(
             feature_names=self.dataset_builder.preprocessor.feature_cols,
             n_timestamps=self.datasets["train"][0].shape[1],
-            folder=self.model_save_dir / "feature_importances_plots"
+            folder=self.model_save_dir / "feature_importances_plots",
         )
-
-
 
     def save_model(self):
         self.save_path = self.model.save(
@@ -82,8 +81,7 @@ class PytsModelPipeline:
         )
 
     def define_grid_search_params(self) -> Dict[str, List[Any]]:
-        return {"n_estimators": [300],
-                "criterion": ["gini"]}
+        return {"n_estimators": [300], "criterion": ["gini"]}
 
     def run_pipeline(self):
         self.prepare_data()
@@ -91,8 +89,6 @@ class PytsModelPipeline:
         self.evaluate()
         self.save_model()
         self.load_and_test()
-
-
 
 
 if __name__ == "__main__":
