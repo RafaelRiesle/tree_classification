@@ -28,60 +28,82 @@ class AdjustLabels:
 
     def get_soil_disturbed_col(self, df):
         """
-        Where 'disturbance_year' != 0.0 and 'species' == 'soil',
-        rename 'species' to 'soil_disturbed'.
+        Where "disturbance_year" != 0.0 and "species" == "soil",
+        rename "species" to "soil_disturbed".
         """
+        print("start specify soil label:")
         df = df.copy()
         mask = (df["disturbance_year"] != 0.0) & (df["species"] == "soil")
         df.loc[mask, "species"] = "soil_disturbed"
+        print("finished specify soil label")
         return df
 
     def specify_label_disturbed(self, df):
         """
         Train a classifier to distinguish between Norway_spruce and Scots_pine,
-        then apply it to 'disturbed' samples to specify their likely species.
+        then apply it to 'disturbed' samples (only before disturbance) to specify their species.
         """
-        df_train = self.stats.calculate_keyfigures_per_id(df, self.bands_and_indices)
+        print("Start specify disturbed label")
 
-        df_disturbed = df[df["species"] == "disturbed"]
-
-        df_spruce_pine = df_train[
-            df_train["species"].isin(["Norway_spruce", "Scots_pine"])
+        print("Calculating key figures for training data...")
+        # Keep only Norway_spruce and Scots_pine
+        df_spruce_pine = df[
+            df["species"].isin(["Norway_spruce", "Scots_pine"])
         ]
-        df_spruce_pine = df_spruce_pine.drop(columns="id")
+        df_spruce_pine = self.stats.calculate_keyfigures_per_id(df_spruce_pine, self.bands_and_indices)
 
+        # Map species to numeric labels
         df_spruce_pine.loc[:, "species"] = df_spruce_pine["species"].map(
             {"Norway_spruce": 0, "Scots_pine": 1}
         )
 
-        X = df_spruce_pine.drop("species", axis=1)
+        X = df_spruce_pine.drop(columns=["species", "id"], errors="ignore")
         y = df_spruce_pine["species"]
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.3, stratify=y, random_state=42
         )
         y_test = y_test.astype(int)
 
+        print("Training classifier...")
         xgb_model = xgb.XGBClassifier(
-            n_estimators=200,
+            n_estimators=100,
             learning_rate=0.1,
             max_depth=4,
             random_state=42,
             eval_metric="logloss",
         )
         xgb_model.fit(X_train, y_train)
+        print("Confusion Matrix:\n", confusion_matrix(y_test, xgb_model.predict(X_test)))
+        print("\nClassification Report:\n", classification_report(y_test, xgb_model.predict(X_test)))
 
+        print("Filtering disturbed samples...")
+        df["year"] = df["time"].dt.year
+        df_disturbed = df[df["species"] == "disturbed"].copy()
+
+        disturbed_filtered = df_disturbed[
+            (
+                (df_disturbed["disturbance_year"] == 2017) &
+                (df_disturbed["year"] == 2017)
+            ) |
+            (
+                (df_disturbed["disturbance_year"] != 2017) &
+                (df_disturbed["year"] < df_disturbed["disturbance_year"])
+            )
+        ].copy()
+
+        print("Calculating key figures for disturbed data...")
         df_disturbed_prepared = self.stats.calculate_keyfigures_per_id(
-            df_disturbed, self.bands_and_indices
+            disturbed_filtered, self.bands_and_indices
         )
 
         ids = df_disturbed_prepared["id"]
         X_disturbed = df_disturbed_prepared.drop(
             columns=["species", "id"], errors="ignore"
         )
-        y_pred_disturbed_class = xgb_model.predict(X_disturbed)
+        y_pred_disturbed = xgb_model.predict(X_disturbed)
 
         df_disturbed_labels = pd.DataFrame(
-            {"id": ids, "species": y_pred_disturbed_class}
+            {"id": ids, "species": y_pred_disturbed}
         )
 
         label_map = {0: "Norway_spruce_disturbed", 1: "Scots_pine_disturbed"}
@@ -91,19 +113,21 @@ class AdjustLabels:
             df_disturbed_labels[["id", "species"]],
             on="id",
             how="left",
-            suffixes=("", "_pred"),
+            suffixes=("", "_pred")
         )
 
+        # Replace disturbed labels with predictions
         df_updated.loc[df_updated["species_pred"].notnull(), "species"] = df_updated[
             "species_pred"
         ]
-        df_updated = df_updated.drop(columns=["species_pred"], errors="ignore")
+        df_updated = df_updated.drop(columns=["species_pred", "year"], errors="ignore")
 
+        print("Finished specifying disturbed labels.")
         return df_updated
 
     def unify_disturbed_labels(self, df):
         """
-        Replace any label that contains 'disturbed' with just 'disturbed'.
+        Replace any label that contains "disturbed" with just "disturbed".
         """
         df = df.copy()
         mask = df["species"].astype(str).str.contains("disturbed", case=False, na=False)
@@ -118,5 +142,4 @@ class AdjustLabels:
             return df
         df = self.get_soil_disturbed_col(df)
         df = self.specify_label_disturbed(df)
-        df = self.unify_disturbed_labels(df)
         return df
