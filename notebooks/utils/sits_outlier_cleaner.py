@@ -74,7 +74,6 @@ class SITSOutlierCleaner:
         return remaining / total
 
     def zscore_outlier_ratio(self, threshold=3):
-        """Anteil der Werte, die nach Z-Score-Definition Ausreißer sind"""
         if self.cleaned_df is None:
             raise ValueError("Bitte zuerst fit_transform ausführen.")
         z = self.cleaned_df[self.band_columns].apply(zscore)

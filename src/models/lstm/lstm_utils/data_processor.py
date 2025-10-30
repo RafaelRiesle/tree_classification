@@ -25,12 +25,9 @@ class DataProcessor:
         ]
 
     def load_data(self):
-        # --- Daten laden ---
         self.train_df = self.loader.load_transform(self.train_path)
         self.val_df = self.loader.load_transform(self.val_path)
         self.test_df = self.loader.load_transform(self.test_path)
-
-        # --- Feature-Spalten bestimmen ---
         self.feature_columns = [
             c
             for c in self.train_df.columns
@@ -45,7 +42,6 @@ class DataProcessor:
         print(self.test_df.columns.tolist())
 
     def preprocess(self):
-        # --- Encode labels (species) ---
         self.le = LabelEncoder()
         self.train_df[self.label_column] = self.le.fit_transform(
             self.train_df[self.label_column]
@@ -57,7 +53,6 @@ class DataProcessor:
             self.test_df[self.label_column]
         )
 
-        # --- One-Hot encode categorical columns ---
         categorical_cols = [
             "season",
             "is_growing_season",
@@ -68,18 +63,15 @@ class DataProcessor:
         self.val_df = pd.get_dummies(self.val_df, columns=categorical_cols)
         self.test_df = pd.get_dummies(self.test_df, columns=categorical_cols)
 
-        # --- Spalten angleichen (wichtig für konsistente Eingaben) ---
         self.val_df = self.val_df.reindex(columns=self.train_df.columns, fill_value=0)
         self.test_df = self.test_df.reindex(columns=self.train_df.columns, fill_value=0)
 
-        # --- Feature-Spalten nach Encoding neu bestimmen ---
         self.feature_columns = [
             c
             for c in self.train_df.columns
             if c not in self.exclude_columns + [self.label_column]
         ]
 
-        # --- Numerische Features skalieren ---
         self.scaler = StandardScaler()
         self.train_df[self.feature_columns] = self.scaler.fit_transform(
             self.train_df[self.feature_columns]
@@ -92,7 +84,6 @@ class DataProcessor:
         )
 
     def create_sequences_and_weights(self):
-        # --- Sequenzen für LSTM erstellen ---
         self.train_sequences = df_to_sequences(
             self.train_df, self.feature_columns, self.label_column
         )
@@ -103,7 +94,6 @@ class DataProcessor:
             self.test_df, self.feature_columns, self.label_column
         )
 
-        # --- Klassen-Gewichte berechnen ---
         labels = [y for _, y in self.train_sequences]
         counts = Counter(labels)
         self.class_weights = [
@@ -112,12 +102,11 @@ class DataProcessor:
         ]
 
     def run(self):
-        # --- Vollständige Pipeline ausführen ---
         self.load_data()
         self.preprocess()
         self.create_sequences_and_weights()
 
-        print("\n✅ Feature Columns after Encoding & Scaling:")
+        print("\nFeature Columns after Encoding & Scaling:")
         print(len(self.feature_columns))
         print(self.feature_columns)
 

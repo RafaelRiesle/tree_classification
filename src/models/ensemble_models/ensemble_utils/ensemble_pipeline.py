@@ -25,9 +25,7 @@ class EnsemblePipeline:
         return pd.get_dummies(df, columns=self.categorical_cols, drop_first=True)
 
     def fit(self, train_df):
-        ts_builder = TimeSeriesAggregator(
-            window=56, step=28
-        )  # 4 Messpunkte pro Fenster, Schritt 2 Wochen
+        ts_builder = TimeSeriesAggregator(window=56, step=28)
         feature_df = ts_builder.run(train_df)
 
         feature_df[self.target_col] = (

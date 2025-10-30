@@ -35,14 +35,12 @@ class TimeSeriesPreprocessor:
             "year",
         ]
 
-    # -----------------------------------------------------
     def load_csv(self, path: str) -> pd.DataFrame:
         df = pd.read_csv(path)
         if "time" in df.columns:
             df = df.sort_values(by=[self.id_col, "time"])
         return df
 
-    # -----------------------------------------------------
     def _encode_categoricals(self, df: pd.DataFrame, fit: bool = False) -> pd.DataFrame:
         """One-hot encodes categorical variables using sklearn's OneHotEncoder."""
         categorical_cols = [
@@ -77,7 +75,6 @@ class TimeSeriesPreprocessor:
         df = pd.concat([df.drop(columns=categorical_cols), encoded_df], axis=1)
         return df
 
-    # -----------------------------------------------------
     def _select_features(self, df: pd.DataFrame) -> List[str]:
         if self.feature_cols is not None:
             return self.feature_cols
@@ -92,7 +89,6 @@ class TimeSeriesPreprocessor:
         )
         return feature_cols
 
-    # -----------------------------------------------------
     def pad_group(self, group: pd.DataFrame) -> np.ndarray:
         data = group[self.feature_cols].to_numpy()
         padded = np.zeros((self.max_len, len(self.feature_cols)))
@@ -100,7 +96,6 @@ class TimeSeriesPreprocessor:
         padded[:length, :] = data[:length, :]
         return padded
 
-    # -----------------------------------------------------
     def transform(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
         df = self._encode_categoricals(df, fit=False)
 
@@ -114,7 +109,6 @@ class TimeSeriesPreprocessor:
         y_encoded = self.label_encoder.transform(y)
         return X, y_encoded
 
-    # -----------------------------------------------------
     def prepare_dataset(
         self, csv_path: str, fit: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:

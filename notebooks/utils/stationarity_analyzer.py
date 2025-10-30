@@ -86,18 +86,13 @@ class StationarityAnalyzer:
         """
 
         df = df.copy()
-
-        # Ensure datetime index
         if date_col in df.columns:
             df[date_col] = pd.to_datetime(df[date_col])
             df.set_index(date_col, inplace=True)
         elif not isinstance(df.index, pd.DatetimeIndex):
             raise ValueError(f"{date_col} not found and index is not datetime.")
 
-        # Filter by species and year
         df_filtered = df[(df.index.year == year) & (df["species"] == species)]
-
-        # Aggregate daily mean
         df_filtered = (
             df_filtered.groupby([df_filtered.index, "species"]).mean().reset_index()
         )
@@ -114,17 +109,13 @@ class StationarityAnalyzer:
                 ax.set_visible(False)
                 continue
 
-            # STL decomposition
             stl = STL(df_filtered[band], period=period, robust=True)
             res = stl.fit()
             trend = res.trend
             seasonal = res.seasonal
             residual = res.resid
 
-            # Store residuals as adjusted column
             df_filtered[f"{band}_adjusted"] = residual
-
-            # Plot original, trend, seasonal, residual
             ax.plot(
                 df_filtered.index,
                 df_filtered[band],
@@ -145,7 +136,6 @@ class StationarityAnalyzer:
             ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
             plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
-        # Remove unused axes
         for j in range(i + 1, len(axes)):
             fig.delaxes(axes[j])
 

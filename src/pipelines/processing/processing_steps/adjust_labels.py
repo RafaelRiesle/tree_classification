@@ -3,18 +3,6 @@ from general_utils.constants import spectral_bands, indices
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 import xgboost as xgb
-
-from models.baseline_model.calculate_keyfigures import StatisticalFeatures
-
-bands_and_indices = spectral_bands + indices
-
-
-import pandas as pd
-from general_utils.constants import spectral_bands, indices
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report
-import xgboost as xgb
-
 from models.baseline_model.calculate_keyfigures import StatisticalFeatures
 
 bands_and_indices = spectral_bands + indices
@@ -46,13 +34,11 @@ class AdjustLabels:
         print("Start specify disturbed label")
 
         print("Calculating key figures for training data...")
-        # Keep only Norway_spruce and Scots_pine
-        df_spruce_pine = df[
-            df["species"].isin(["Norway_spruce", "Scots_pine"])
-        ]
-        df_spruce_pine = self.stats.calculate_keyfigures_per_id(df_spruce_pine, self.bands_and_indices)
+        df_spruce_pine = df[df["species"].isin(["Norway_spruce", "Scots_pine"])]
+        df_spruce_pine = self.stats.calculate_keyfigures_per_id(
+            df_spruce_pine, self.bands_and_indices
+        )
 
-        # Map species to numeric labels
         df_spruce_pine.loc[:, "species"] = df_spruce_pine["species"].map(
             {"Norway_spruce": 0, "Scots_pine": 1}
         )
@@ -73,8 +59,13 @@ class AdjustLabels:
             eval_metric="logloss",
         )
         xgb_model.fit(X_train, y_train)
-        print("Confusion Matrix:\n", confusion_matrix(y_test, xgb_model.predict(X_test)))
-        print("\nClassification Report:\n", classification_report(y_test, xgb_model.predict(X_test)))
+        print(
+            "Confusion Matrix:\n", confusion_matrix(y_test, xgb_model.predict(X_test))
+        )
+        print(
+            "\nClassification Report:\n",
+            classification_report(y_test, xgb_model.predict(X_test)),
+        )
 
         print("Filtering disturbed samples...")
         df["year"] = df["time"].dt.year
@@ -82,12 +73,12 @@ class AdjustLabels:
 
         disturbed_filtered = df_disturbed[
             (
-                (df_disturbed["disturbance_year"] == 2017) &
-                (df_disturbed["year"] == 2017)
-            ) |
-            (
-                (df_disturbed["disturbance_year"] != 2017) &
-                (df_disturbed["year"] < df_disturbed["disturbance_year"])
+                (df_disturbed["disturbance_year"] == 2017)
+                & (df_disturbed["year"] == 2017)
+            )
+            | (
+                (df_disturbed["disturbance_year"] != 2017)
+                & (df_disturbed["year"] < df_disturbed["disturbance_year"])
             )
         ].copy()
 
@@ -102,9 +93,7 @@ class AdjustLabels:
         )
         y_pred_disturbed = xgb_model.predict(X_disturbed)
 
-        df_disturbed_labels = pd.DataFrame(
-            {"id": ids, "species": y_pred_disturbed}
-        )
+        df_disturbed_labels = pd.DataFrame({"id": ids, "species": y_pred_disturbed})
 
         label_map = {0: "Norway_spruce_disturbed", 1: "Scots_pine_disturbed"}
         df_disturbed_labels["species"] = df_disturbed_labels["species"].map(label_map)
@@ -113,10 +102,9 @@ class AdjustLabels:
             df_disturbed_labels[["id", "species"]],
             on="id",
             how="left",
-            suffixes=("", "_pred")
+            suffixes=("", "_pred"),
         )
 
-        # Replace disturbed labels with predictions
         df_updated.loc[df_updated["species_pred"].notnull(), "species"] = df_updated[
             "species_pred"
         ]

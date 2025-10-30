@@ -187,11 +187,11 @@ class ModelEvaluator:
         if len(np.unique(all_labels)) == 2:
             metrics["roc_auc"] = roc_auc_score(all_labels, all_probs)
 
-        print(f"\n📊 {split.capitalize()} Metrics:")
+        print(f"\n{split.capitalize()} Metrics:")
         for k, v in metrics.items():
             print(f"{k:>20}: {v:.4f}")
 
-        print("\n🧾 Classification Report:")
+        print("\nClassification Report:")
         print(classification_report(all_labels, all_preds))
 
         return metrics
@@ -213,8 +213,6 @@ class ModelEvaluator:
             data_loader = self.data_module.test_dataloader()
 
         results = []
-
-        # n_samples Beispiele aus Testset
         collected = 0
         for batch in data_loader:
             x = batch["sequence"].to(device)
@@ -230,7 +228,6 @@ class ModelEvaluator:
                 pred = preds[i].item()
                 collected += 1
 
-                # Für jede Zielklasse IG berechnen
                 for target_class in target_classes:
                     baseline = torch.zeros_like(x_sample).to(device)
                     attributions, _ = ig.attribute(
@@ -239,8 +236,6 @@ class ModelEvaluator:
                         target=target_class,
                         return_convergence_delta=True,
                     )
-
-                    # Heatmap plotten & speichern
                     if save_plots:
                         self._plot_integrated_gradients_heatmap(
                             attributions, i, label, pred, target_class

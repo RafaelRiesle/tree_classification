@@ -32,14 +32,12 @@ class DatasetSplitLoader:
         if self.df is None:
             raise ValueError("Dataset not loaded. Call load_and_prepare() first.")
 
-        # Dateipfade definieren
         split_files = {
             "train": self.output_dir / "trainset.csv",
             "test": self.output_dir / "testset.csv",
             "val": self.output_dir / "valset.csv",
         }
 
-        # Falls schon existieren und force=False → laden statt neu splitten
         if all(path.exists() for path in split_files.values()) and not force:
             print("Splits already exist – loading from disk")
             return {
@@ -47,12 +45,10 @@ class DatasetSplitLoader:
                 for name, path in split_files.items()
             }
 
-        # --- ansonsten: neu erzeugen ---
         total = train_ratio + test_ratio + validation_ratio
         if not abs(total - 1.0) < 1e-6:
             raise ValueError(f"Ratios must sum to 1.0, but got {total}")
 
-        # IDs deterministisch hashen
         unique_ids = sorted(self.df["id"].unique())
         hashed_ids = sorted(
             unique_ids, key=lambda x: hashlib.md5(str(x).encode()).hexdigest()
@@ -73,7 +69,6 @@ class DatasetSplitLoader:
             "val": self.df[self.df["id"].isin(val_ids)],
         }
 
-        # Speichern
         for name, df_split in splits.items():
             df_split.to_csv(split_files[name], index=False)
 

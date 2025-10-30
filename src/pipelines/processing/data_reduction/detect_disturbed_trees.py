@@ -8,6 +8,7 @@ import xgboost as xgb
 from pipelines.processing.features.basic_features import BasicFeatures
 from general_utils.constants import spectral_bands, indices
 
+
 class DetectDisturbedTrees:
     def __init__(self, on=True, scale_pos_weight=4, random_state=42):
         self.on = on
@@ -146,7 +147,6 @@ class DetectDisturbedTrees:
         model = self.train_model(train_df)
         self.model = model
 
-        # Apply model to healthy trees only
         df_healthy = full_df[~full_df["is_disturbed"]].copy()
         df_pred = self.apply_model(model, df_healthy)
 

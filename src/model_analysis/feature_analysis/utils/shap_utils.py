@@ -21,7 +21,6 @@ class ShapVisualizer:
         self.output_folder = output_folder
         os.makedirs(output_folder, exist_ok=True)
 
-    # ---------- Helpers ---------- #
     def _save_plot(self, filename, dpi=200):
         path = os.path.join(self.output_folder, filename)
         plt.savefig(path, bbox_inches="tight", dpi=dpi)
@@ -44,7 +43,6 @@ class ShapVisualizer:
             np.mean(np.abs(self.shap_values), axis=axis), index=self.X_test.columns
         )
 
-    # ---------- Global Importance ---------- #
     def plot_global_mean(self, top_n=30, figsize=(10, 6), title=None):
         """
         Plot global feature importance based on mean(|SHAP|) averaged across samples and classes.
@@ -58,7 +56,6 @@ class ShapVisualizer:
         plt.tight_layout()
         plt.show()
 
-    # ---------- Class Plots ---------- #
     def save_class_summary_plots(self, max_display=10, dpi=200):
         """
         Generate and save SHAP summary (beeswarm) plots for each class.
@@ -111,13 +108,11 @@ class ShapVisualizer:
                 axes[i].imshow(plt.imread(path))
                 axes[i].set_title(cls)
                 axes[i].axis("off")
-        # Remove extra unused subplots
         for j in range(i + 1, len(axes)):
             fig.delaxes(axes[j])
         plt.tight_layout()
         plt.show()
 
-    # ---------- Grouped Importance ---------- #
     def plot_grouped_importance(self):
         """
         Compute and visualize mean absolute SHAP values grouped by feature components
@@ -140,7 +135,6 @@ class ShapVisualizer:
         plt.tight_layout()
         plt.show()
 
-    # ---------- Heatmaps ---------- #
     def plot_heatmaps_grouped(self):
         """
         Generate heatmaps showing SHAP importance grouped by combinations of
@@ -149,7 +143,6 @@ class ShapVisualizer:
         feat_info = self._parse_features()
         shap_mean = self._mean_abs_shap()
 
-        # Compute top 10 bands
         top10_bands = shap_mean.groupby(feat_info["band"]).mean().nlargest(10).index
         months = [
             "January",

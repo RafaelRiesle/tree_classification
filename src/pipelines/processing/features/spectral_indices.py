@@ -93,8 +93,6 @@ class CalculateIndices:
         df["reip"] = self.calculate_reip(df)
         df["masvi2"] = self.calculate_masvi2(df)
         df["dvi"] = self.calculate_dvi(df)
-
-        # Sentinel-2 Indizes
         df["ndmi"] = self.calculate_ndmi(df)
         df["nbr"] = self.calculate_nbr(df)
         df["ndwi"] = self.calculate_ndwi(df)

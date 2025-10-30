@@ -2,8 +2,6 @@ from pathlib import Path
 from general_utils.utility_functions import load_data
 from models.ensemble_models.pipelines.pipeline_generic import GenericPipeline
 from sklearn.ensemble import RandomForestClassifier
-import lightgbm as lgb
-import xgboost as xgb
 
 
 BASE_DIR = Path(__file__).parents[4]
@@ -16,16 +14,12 @@ def define_models():
     return [
         (
             RandomForestClassifier,
-            {"n_estimators": [200], "criterion": ["gini"], "class_weight":["balanced"]},
+            {
+                "n_estimators": [200],
+                "criterion": ["gini"],
+                "class_weight": ["balanced"],
+            },
         ),
-        # (
-        #     xgb.XGBClassifier,
-        #     {
-        #         "n_estimators": [100, 500],
-        #         "learning_rate": [0.1],
-        #         "max_depth": [10, 20],
-        #     },
-        # ),
     ]
 
 

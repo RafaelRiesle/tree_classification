@@ -16,12 +16,8 @@ TEST_PATH = BASE_DIR / "data/processed/testset.csv"
 
 
 def evaluate_only(ckpt_path=CHECKPOINT_PATH, batch_size=32, lr=1e-3):
-    # -------------------- Daten vorbereiten --------------------
     processor = DataProcessor(TRAIN_PATH, TEST_PATH, VAL_PATH, label_column="species")
     data_info = processor.run()
-
-    # -------------------- Modell laden --------------------
-    print(f"📦 Lade Modell aus Checkpoint: {ckpt_path}")
     model = SpeciesPredictor.load_from_checkpoint(
         ckpt_path,
         n_features=len(data_info["feature_columns"]),
@@ -30,8 +26,6 @@ def evaluate_only(ckpt_path=CHECKPOINT_PATH, batch_size=32, lr=1e-3):
         class_weights=data_info["class_weights"],
     )
     model.eval()
-
-    # -------------------- DataModule rekonstruieren --------------------
     data_module = SpeciesDataModule(
         data_info["train_sequences"],
         data_info["val_sequences"],
@@ -39,12 +33,10 @@ def evaluate_only(ckpt_path=CHECKPOINT_PATH, batch_size=32, lr=1e-3):
         batch_size=batch_size,
     )
 
-    # -------------------- Evaluator --------------------
     evaluator = ModelEvaluator(
         model, data_module, feature_columns=data_info["feature_columns"]
     )
 
-    # -------------------- Evaluation --------------------
     for split in ["test", "val"]:
         print(f"\n===== {split.upper()} METRICS =====")
         evaluator.evaluate_confusion_matrix(split=split)
@@ -55,11 +47,9 @@ def evaluate_only(ckpt_path=CHECKPOINT_PATH, batch_size=32, lr=1e-3):
             split=split,
             save_plots=True,
         )
-
-        # ---- Permutation Importance ----
         # evaluator.permutation_importance(split=split)
 
-    print("\n✅ Finished Evaluation.")
+    print("\nFinished Evaluation.")
 
 
 if __name__ == "__main__":

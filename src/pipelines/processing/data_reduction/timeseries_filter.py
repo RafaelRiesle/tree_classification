@@ -14,7 +14,6 @@ class TimeSeriesFilter:
         self.valid_ids_ = None
 
     def fit(self, df: pd.DataFrame):
-        # Compute median time difference per ID
         time_diffs = (
             df.groupby(self.id_col)
             .agg({self.time_col: lambda x: x.diff().median()})

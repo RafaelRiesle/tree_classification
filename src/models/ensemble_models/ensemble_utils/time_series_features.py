@@ -56,9 +56,7 @@ class TimeSeriesAggregator:
         df["time_num"] = (df["time"] - df["time"].min()).dt.days
         groups = list(df.groupby("id"))
 
-        with tqdm_joblib(
-            tqdm(desc="Processing IDs", total=len(groups))
-        ) as progress_bar:
+        with tqdm_joblib(tqdm(desc="Processing IDs", total=len(groups))) as _:
             res = Parallel(n_jobs=self.n_jobs)(
                 delayed(self.process_id)(i, g) for i, g in groups
             )

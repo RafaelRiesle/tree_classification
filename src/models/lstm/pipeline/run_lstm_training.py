@@ -17,11 +17,9 @@ def train_model(
     lr=0.001,
     max_epochs=5,
 ):
-    # 1. Process data
     processor = DataProcessor(train_path, val_path, test_path, label_column="species")
     data_info = processor.run()
 
-    # 2. Train LSTM
     trainer = LSTMTrainer(
         train_sequences=data_info["train_sequences"],
         val_sequences=data_info["val_sequences"],

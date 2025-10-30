@@ -33,7 +33,6 @@ class StatisticalFeatures:
             columns=[col for col in df_train.columns if "month_" in col]
         )
 
-        # dtypes
         feature_cols = df_train.columns.drop("species")
         for col in feature_cols:
             df_train[col] = pd.to_numeric(df_train[col], errors="coerce")

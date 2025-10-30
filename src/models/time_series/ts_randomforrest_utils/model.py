@@ -123,7 +123,6 @@ class FlattenedRandomForestModel:
         print("Confusion Matrix:")
         print(confusion_matrix(y_true_labels, y_pred_labels))
 
-        # Weighted accuracy based on F1-score
         report = classification_report(y, y_pred, output_dict=True)
         weighted_acc = report["weighted avg"]["f1-score"]
         print(f"Weighted Accuracy (F1, {set_name}): {weighted_acc:.4f}")
@@ -166,11 +165,8 @@ class FlattenedRandomForestModel:
 
         importances = self.model.feature_importances_
 
-        # Da die Zeitreihen flach gemacht wurden, müssen wir die Importances reshapen:
         n_features = len(feature_names)
         reshaped = importances.reshape(n_timestamps, n_features)
-
-        # Mittelwert der Wichtigkeiten über die Zeit berechnen
         mean_importances = reshaped.mean(axis=0)
 
         df_importances = pd.DataFrame(
@@ -182,9 +178,6 @@ class FlattenedRandomForestModel:
     def save_feature_importances_plot(
         self, feature_names: List[str], n_timestamps: int, folder: str = "XXX"
     ):
-        """
-        Berechnet die Feature Importances und speichert sie als PNG-Balkendiagramm.
-        """
         if not hasattr(self.model, "feature_importances_"):
             raise RuntimeError("Model has no feature_importances_ attribute.")
 

@@ -93,10 +93,7 @@ class SpectralBandPlotter:
         plt.show()
 
     def plot_species_season_distribution(self):
-        # Identify band columns
         band_columns = [col for col in self.df.columns if col.startswith("b")]
-
-        # Compute mean per species and season
         df_grouped = (
             self.df.groupby(["species", "season"])[band_columns].mean().reset_index()
         )
@@ -104,14 +101,12 @@ class SpectralBandPlotter:
         # Get unique seasons and species
         seasons = df_grouped["season"].unique()
         species_list = df_grouped["species"].unique()
-
-        # Create subplots: one column per season
         fig, axes = plt.subplots(
             1, len(seasons), figsize=(5 * len(seasons), 5), sharey=True
         )
 
         if len(seasons) == 1:
-            axes = [axes]  # ensure axes is iterable
+            axes = [axes]
 
         for ax, season in zip(axes, seasons):
             df_season = df_grouped[df_grouped["season"] == season]
@@ -139,14 +134,11 @@ class SpectralBandPlotter:
         if addition is None:
             addition = "Overview"
 
-        # Identify spectral band columns
         band_columns = [col for col in self.df.columns if col.startswith("b")]
 
-        # Unique years
         years = self.df["year"].unique()
         n_years = len(years)
 
-        # Create subplots (1 row, n_years columns)
         fig, axes = plt.subplots(1, n_years, figsize=(5 * n_years, 5), sharey=True)
 
         if n_years == 1:

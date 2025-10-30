@@ -64,7 +64,7 @@ def plot_timeseries_multiple_ids(
     fig, axes = plt.subplots(
         nrows=nrows, ncols=ncols, figsize=(12, nrows * 4), sharex=False
     )
-    axes = axes.flatten()  # um immer eine 1D-Liste zu haben
+    axes = axes.flatten()
 
     for i, id in enumerate(ids):
         ax = axes[i]
@@ -89,7 +89,6 @@ def plot_timeseries_multiple_ids(
         ax.grid(True)
         ax.legend()
 
-    # leere Subplots entfernen
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
 

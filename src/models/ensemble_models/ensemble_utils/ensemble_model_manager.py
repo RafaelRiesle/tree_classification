@@ -79,7 +79,6 @@ class EnsembleModelManager:
 
     # ---------------- Save Baseline Model ----------------
     def save_to_json(self, model):
-        # Git-User auslesen
         try:
             git_user = subprocess.check_output(
                 ["git", "config", "user.name"], text=True
@@ -87,16 +86,12 @@ class EnsembleModelManager:
         except subprocess.CalledProcessError:
             git_user = getpass.getuser()
 
-        # Benutzer-Ordner erstellen
         user_dir = self.results_dir / git_user
         user_dir.mkdir(parents=True, exist_ok=True)
-
-        # Timestamp und Datei
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         run_file = user_dir / f"run_{timestamp}.json"
         model["run_id"] = timestamp
 
-        # JSON speichern
         with open(run_file, "w") as f:
             json.dump(model, f, indent=4)
 

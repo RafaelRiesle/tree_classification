@@ -1,9 +1,7 @@
-import pandas as pd
 import xgboost as xgb
 import joblib
 from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
-
 from pipelines.preprocessing.run_preprocessing_pipeline import (
     run_preprocessing_pipeline,
 )
@@ -12,7 +10,6 @@ from pipelines.processing.features.spectral_indices import CalculateIndices
 from pipelines.processing.features.basic_features import BasicFeatures
 from pipelines.processing.features.temporal_features import TemporalFeatures
 from pipelines.processing.processing_steps.interpolation import Interpolation
-
 from models.baseline_model.baseline_model_utils import (
     drop_unwanted_columns,
     split_into_X_y,

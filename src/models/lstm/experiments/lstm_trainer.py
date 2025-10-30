@@ -34,8 +34,6 @@ class LSTMTrainer:
         self.n_classes = n_classes
         self.class_weights = class_weights
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        # Data module
         self.data_module = SpeciesDataModule(
             train_sequences, val_sequences, test_sequences, batch_size
         )
