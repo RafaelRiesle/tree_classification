@@ -1,6 +1,3 @@
-`<a id="readme-top"></a>`
-`<br />`
-
 <div align="center">
     <img src="doc/assets/images/sentinel.jpg", alt="Logo"  width = 400>
 </a>
@@ -63,15 +60,6 @@ uv:
 uv pip install -e .
 ```
 
----
-
-## Usage
-
-This project includes detailed documentation, examples, and additional resources to help you get started and understand the workflow.
-
-_For more examples, please refer to the [Documentation](doc/index.md)_
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
 
@@ -88,8 +76,6 @@ _For more examples, please refer to the [Documentation](doc/index.md)_
   - [X] Feature Importance
 - [X] Data Reduction
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ---
 
 ## Contact
@@ -98,4 +84,4 @@ _For more examples, please refer to the [Documentation](doc/index.md)_
 - Alexandru Cozma - coal1014@h-ka.de
 - Rafael Riesle - rira1011@h-ka.de
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
