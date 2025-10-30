@@ -1,6 +1,10 @@
 import numpy as np
 from typing import List, Tuple, Dict
-from models.time_series.ts_randomforrest_utils.time_series_preprocessor import TimeSeriesPreprocessor
+from models.time_series.ts_randomforrest_utils.time_series_preprocessor import (
+    TimeSeriesPreprocessor,
+)
+
+
 class PytsDatasetBuilder:
     """Manages train/test/validation dataset preparation."""
 

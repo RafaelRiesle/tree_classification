@@ -1,8 +1,12 @@
 import pandas as pd
-from sklearn.metrics import classification_report, confusion_matrix, balanced_accuracy_score
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    balanced_accuracy_score,
+)
+
 
 def drop_unwanted_columns(df, cols_to_drop=None):
-
     if cols_to_drop is None:
         cols_to_drop = ["disturbance_year", "is_disturbed", "date_diff"]
     return df.drop(columns=[c for c in cols_to_drop if c in df.columns])
@@ -27,7 +31,7 @@ def split_into_X_y(df_train, df_test, target_col="species_encoded"):
 def evaluate_model(model, X_test, df_test, label_encoder):
     """
     Evaluate a trained model on test data.
-    
+
     Args:
         model: Trained classifier
         X_test (pd.DataFrame): Test features
@@ -39,13 +43,17 @@ def evaluate_model(model, X_test, df_test, label_encoder):
 
     if "species" in df_test.columns:
         y_test_true = label_encoder.transform(df_test["species"])
-        
+
         print("\nConfusion Matrix:")
         print(confusion_matrix(y_test_true, y_pred))
-        
+
         print("\nClassification Report:")
-        print(classification_report(y_test_true, y_pred, target_names=label_encoder.classes_))
-        
+        print(
+            classification_report(
+                y_test_true, y_pred, target_names=label_encoder.classes_
+            )
+        )
+
         bal_acc = balanced_accuracy_score(y_test_true, y_pred)
         print(f"\nBalanced Accuracy: {bal_acc:.4f}")
     else:

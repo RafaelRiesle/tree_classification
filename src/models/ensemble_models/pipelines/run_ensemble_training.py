@@ -5,7 +5,6 @@ from models.ensemble_models.evaluation.run_evalution_for_best_model import (
 )
 
 
-
 class TrainingPipeline:
     def __init__(
         self,
@@ -24,12 +23,11 @@ class TrainingPipeline:
             "test_path": self.processed_dir / "testset.csv",
             "val_path": self.processed_dir / "valset.csv",
         }
-    
 
     def run_ensemble_models(self):
         print("[3] Training ensemble models...")
         run_ensemble(**self.paths)
-        #run_evaluation_for_best_model()
+        # run_evaluation_for_best_model()
         print("[3] Ensemble training complete.\n")
 
 

@@ -58,7 +58,12 @@ class DataProcessor:
         )
 
         # --- One-Hot encode categorical columns ---
-        categorical_cols = ["season", "is_growing_season", "month_num", "biweek_of_year"]
+        categorical_cols = [
+            "season",
+            "is_growing_season",
+            "month_num",
+            "biweek_of_year",
+        ]
         self.train_df = pd.get_dummies(self.train_df, columns=categorical_cols)
         self.val_df = pd.get_dummies(self.val_df, columns=categorical_cols)
         self.test_df = pd.get_dummies(self.test_df, columns=categorical_cols)

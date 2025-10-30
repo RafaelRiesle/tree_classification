@@ -93,17 +93,20 @@ class DataReductionAnalysis:
                     "acc": self.evaluate(model, X[split_idx:], y[split_idx:]),
                 }
             )
+
         df_results = pd.DataFrame(results)
+
         plt.figure(figsize=(8, 5))
-        plt.plot(df_results["label"], df_results["acc"], marker="o", color="royalblue")
+        plt.bar(
+            df_results["label"], df_results["acc"], color="royalblue", edgecolor="black"
+        )
         plt.title(title)
         plt.xlabel(xlabel)
         plt.ylabel("Balanced Accuracy")
-        plt.xticks(rotation=45)  # <-- hier die Beschriftungen schräg
-        plt.grid(True)
+        plt.xticks(rotation=45)
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
         plt.tight_layout()
         plt.show()
-
 
     def train_single_years(self):
         data_splits = [

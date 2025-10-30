@@ -18,7 +18,6 @@ class DetectDisturbedTrees:
 
         self.basic_features = BasicFeatures(on=on)
 
-
     def scale_data(self, df):
         df_scaled = df.copy()
         df_scaled[self.bands_and_indices] = df.groupby("species")[
@@ -140,7 +139,7 @@ class DetectDisturbedTrees:
     def run(self, df):
         if not self.on:
             return df
-        
+
         df = self.basic_features.add_disturbance_flag(df)
         full_df = self.prepare_data(df)
         train_df = self.get_balanced_train_data(full_df)
@@ -154,7 +153,7 @@ class DetectDisturbedTrees:
         disturbed_ids = df_pred.loc[df_pred["is_disturbed_pred"] == True, "id"].unique()
         n_deleted = len(disturbed_ids)
         print(f"{n_deleted} ids have been removed due to predicted disturbance")
-        
+
         df_final = df[~df["id"].isin(disturbed_ids)].copy()
 
         return df_final

@@ -2,6 +2,7 @@ from models.lstm.lstm_utils.padded_dataset import PaddedSpeciesDataset
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
+
 class SpeciesDataModule(pl.LightningDataModule):
     def __init__(self, train_seqs, test_seqs, val_seqs, batch_size=32):
         super().__init__()
@@ -22,4 +23,3 @@ class SpeciesDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=4)
-

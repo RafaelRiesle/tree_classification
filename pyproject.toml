@@ -31,7 +31,7 @@ dependencies = [
     "lightgbm",
     "tqdm_joblib",
     "shap",
-    captum=0.7.0
+    "captum=0.7.0"
 ]
 
 [tool.setuptools.packages.find]

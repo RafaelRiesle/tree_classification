@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class TimeSeriesAggregate:
     def __init__(self, on=True, freq=2, method="mean"):
         """

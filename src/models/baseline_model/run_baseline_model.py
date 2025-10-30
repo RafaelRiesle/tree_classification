@@ -4,14 +4,20 @@ import joblib
 from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
 
-from pipelines.preprocessing.run_preprocessing_pipeline import run_preprocessing_pipeline
+from pipelines.preprocessing.run_preprocessing_pipeline import (
+    run_preprocessing_pipeline,
+)
 from pipelines.processing.processing_pipeline import ProcessingPipeline
 from pipelines.processing.features.spectral_indices import CalculateIndices
 from pipelines.processing.features.basic_features import BasicFeatures
 from pipelines.processing.features.temporal_features import TemporalFeatures
 from pipelines.processing.processing_steps.interpolation import Interpolation
 
-from models.baseline_model.baseline_model_utils import drop_unwanted_columns, split_into_X_y, evaluate_model
+from models.baseline_model.baseline_model_utils import (
+    drop_unwanted_columns,
+    split_into_X_y,
+    evaluate_model,
+)
 from models.baseline_model.calculate_keyfigures import StatisticalFeatures
 from general_utils.constants import spectral_bands, indices
 
@@ -59,7 +65,7 @@ df_test = pipeline_test.run()
 df_train = drop_unwanted_columns(df_train)
 df_test = drop_unwanted_columns(df_test)
 
-# Group by id and calculate keyfigures 
+# Group by id and calculate keyfigures
 sf = StatisticalFeatures()
 df_train = sf.calculate_keyfigures_per_id(df_train, bands_and_indices)
 df_test = sf.calculate_keyfigures_per_id(df_test, bands_and_indices)

@@ -1,4 +1,5 @@
-import torch.nn as nn 
+import torch.nn as nn
+
 
 class ImprovedSequenceModel(nn.Module):
     def __init__(

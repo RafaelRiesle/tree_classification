@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class TimeSeriesFilter:
     """
     Removes time series with large median time gaps.
@@ -16,18 +17,18 @@ class TimeSeriesFilter:
         # Compute median time difference per ID
         time_diffs = (
             df.groupby(self.id_col)
-              .agg({self.time_col: lambda x: x.diff().median()})
-              .reset_index()
+            .agg({self.time_col: lambda x: x.diff().median()})
+            .reset_index()
         )
         time_diffs.columns = [self.id_col, "median_time_diff_days"]
-        time_diffs["median_time_diff_days"] = (
-            time_diffs["median_time_diff_days"].dt.total_seconds() / (24 * 60 * 60)
-        )
+        time_diffs["median_time_diff_days"] = time_diffs[
+            "median_time_diff_days"
+        ].dt.total_seconds() / (24 * 60 * 60)
 
         self.valid_ids_ = set(
             time_diffs.loc[
                 time_diffs["median_time_diff_days"] <= self.max_median_diff_days,
-                self.id_col
+                self.id_col,
             ]
         )
         return self

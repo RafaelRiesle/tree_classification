@@ -18,7 +18,6 @@ class BasicFeatures:
         if "doy" in df.columns:
             df = df.drop(columns=["doy"])
         return df
-    
 
     def run(self, df):
         if not self.on:

@@ -16,7 +16,8 @@ class EnsemblePipeline:
     def drop_columns(self, df):
         """Remove unnecessary columns."""
         return df.drop(
-            columns=["time", "id", "is_disturbed", "disturbance_year", "date_diff"], errors="ignore"
+            columns=["time", "id", "is_disturbed", "disturbance_year", "date_diff"],
+            errors="ignore",
         )
 
     def _encode_features(self, df):
@@ -24,7 +25,9 @@ class EnsemblePipeline:
         return pd.get_dummies(df, columns=self.categorical_cols, drop_first=True)
 
     def fit(self, train_df):
-        ts_builder = TimeSeriesAggregator(window=56, step=28)  # 4 Messpunkte pro Fenster, Schritt 2 Wochen
+        ts_builder = TimeSeriesAggregator(
+            window=56, step=28
+        )  # 4 Messpunkte pro Fenster, Schritt 2 Wochen
         feature_df = ts_builder.run(train_df)
 
         feature_df[self.target_col] = (
@@ -52,7 +55,7 @@ class EnsemblePipeline:
         if not self.fitted:
             raise RuntimeError("Pipeline must be fitted before transform().")
 
-        ts_builder = TimeSeriesAggregator(window=56, step=28)  
+        ts_builder = TimeSeriesAggregator(window=56, step=28)
         feature_df = ts_builder.run(df)
 
         if self.target_col in df.columns:

@@ -54,14 +54,16 @@ def plot_timeseries_oneid(
     plt.show()
 
 
-
-
-def plot_timeseries_multiple_ids(df, ids, col, df_yearly=None, yearly_mean=True, df_scaled=True):
+def plot_timeseries_multiple_ids(
+    df, ids, col, df_yearly=None, yearly_mean=True, df_scaled=True
+):
     n = len(ids)
     ncols = 2
     nrows = math.ceil(n / ncols)
 
-    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, nrows * 4), sharex=False)
+    fig, axes = plt.subplots(
+        nrows=nrows, ncols=ncols, figsize=(12, nrows * 4), sharex=False
+    )
     axes = axes.flatten()  # um immer eine 1D-Liste zu haben
 
     for i, id in enumerate(ids):
@@ -76,7 +78,11 @@ def plot_timeseries_multiple_ids(df, ids, col, df_yearly=None, yearly_mean=True,
             )
             ax.plot(df_yearly_sub["year_dt"], df_yearly_sub[col], label="Yearly mean")
 
-        title = f"{col} (normalized) Timeseries for ID {id}" if df_scaled else f"{col} Timeseries for ID {id}"
+        title = (
+            f"{col} (normalized) Timeseries for ID {id}"
+            if df_scaled
+            else f"{col} Timeseries for ID {id}"
+        )
         ax.set_title(title)
         ax.set_xlabel("Time")
         ax.set_ylabel(col)
@@ -89,4 +95,3 @@ def plot_timeseries_multiple_ids(df, ids, col, df_yearly=None, yearly_mean=True,
 
     plt.tight_layout()
     plt.show()
-

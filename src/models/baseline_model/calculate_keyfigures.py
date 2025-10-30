@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class StatisticalFeatures:
     def calculate_keyfigures_per_id(self, df, bands_and_indices):
         """

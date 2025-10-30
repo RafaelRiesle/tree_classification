@@ -3,121 +3,142 @@ import numpy as np
 from tsaug import Drift, AddNoise
 from scipy.interpolate import interp1d
 import warnings
+from tqdm import tqdm
+from collections import Counter
 from general_utils.constants import spectral_bands
-import tqdm
 
 warnings.filterwarnings("ignore")
 
 
 class DataAugmentation:
-    def __init__(self, on=True, scale=0.002, drift=0.01, threshold=150):
+    def __init__(self, on=True, scale=0.02, drift=0.01, random_state=42):
         self.on = on
         self.scale = scale
         self.drift = drift
-        self.threshold = threshold
+        self.rng = np.random.default_rng(
+            random_state
+        )  # Besserer Weg zur Verwaltung von Zufälligkeit
 
     def _make_augmenter(self):
-        return Drift(max_drift=self.drift) + AddNoise(scale=self.scale)
+        """Erstellt einen Augmenter mit Drift und Rauschen."""
+        # WICHTIG: Wir erzeugen hier für jeden Aufruf neue Integer-Seeds aus unserem Generator.
+        # So ist jede Augmentierung anders, aber der gesamte Lauf bleibt reproduzierbar.
+        seed1 = self.rng.integers(np.iinfo(np.int32).max)
+        seed2 = self.rng.integers(np.iinfo(np.int32).max)
 
-    def resample_time_series(self, df_species, spectral_bands, max_len, augmenter, start_time):
-        df_species = df_species.sort_values("time").reset_index(drop=True)
-        time_aug = pd.date_range(start_time, df_species["time"].max(), periods=max_len)
+        return Drift(max_drift=self.drift, seed=seed1) + AddNoise(
+            scale=self.scale, seed=seed2
+        )
 
-        aug_data = {
-            "species": df_species["species"].iloc[0],
-            "id": df_species["id"].iloc[0],
-            "time": time_aug
-        }
+    def _resample_time_series(
+        self, df_id: pd.DataFrame, time_index_aug: pd.DatetimeIndex, augmenter
+    ) -> pd.DataFrame:
+        """Resampelt und augmentiert die Zeitreihe einer einzelnen ID."""
+        df_id = df_id.sort_values("time").reset_index(drop=True)
+
+        # Sicherheitsabfrage: Mindestens 2 Punkte für Interpolation nötig
+        if len(df_id) < 2:
+            return None
+
+        aug_data = {"time": time_index_aug}
 
         for col in spectral_bands:
-            Y = df_species[col].interpolate().to_numpy().astype(np.float64)
-            if len(Y) < 2:
-                aug_data[col] = np.full(max_len, np.nan)
-                continue
+            # Originaldaten vorbereiten
+            y = df_id[col].interpolate(method="linear").to_numpy(dtype=np.float64)
+            x = df_id["time"].view(np.int64)
 
-            Y_aug = augmenter.augment(Y)
+            # Augmentierung anwenden
+            y_aug = augmenter.augment(y.reshape(1, -1, 1)).flatten()
 
-            try:
-                f = interp1d(
-                    df_species["time"].view(np.int64),
-                    Y_aug,
-                    kind="linear",
-                    fill_value="extrapolate"
-                )
-                aug_data[col] = f(time_aug.view(np.int64))
-            except Exception:
-                aug_data[col] = np.full(max_len, np.nan)
+            # Interpolation - SICHERER ANSATZ OHNE EXTRAPOLATION
+            f = interp1d(
+                x,
+                y_aug,
+                kind="linear",
+                bounds_error=False,  # Kein Fehler bei Werten außerhalb des Bereichs
+                fill_value=(y_aug[0], y_aug[-1]),  # Fülle mit erstem/letztem Wert
+            )
+            aug_data[col] = f(time_index_aug.view(np.int64))
 
         return pd.DataFrame(aug_data)
 
+    def run(
+        self, df: pd.DataFrame, target_len=152, target_ids_per_species=None
+    ) -> pd.DataFrame:
+        """
+        Führt die Augmentierung durch, um die Anzahl der IDs pro Spezies auszugleichen.
+        Alle Zeitreihen werden auf eine einheitliche Länge und Zeitachse gebracht.
+        """
+        if not self.on:
+            return df
 
-    def balance_species_ids(self, df, target_size=None, random_state=42):
-        np.random.seed(random_state)
-
-        species_counts = df.groupby("species")["id"].nunique()
-        max_ids = target_size or species_counts.max()
-        print(f"Target number of IDs per species: {max_ids}")
-
-        balanced_mapping = {}
-
-        for species, ids in df.groupby("species")["id"].unique().items():
-            ids = np.array(ids)
-            n_current = len(ids)
-            if n_current < max_ids:
-                extra = np.random.choice(ids, size=max_ids - n_current, replace=True)
-                ids_bal = np.concatenate([ids, extra])
-            else:
-                ids_bal = ids[:max_ids]
-            balanced_mapping[species] = ids_bal
-
-        return balanced_mapping
-
-
-
-    def augment(self, df: pd.DataFrame, spectral_bands=spectral_bands, max_len=152, random_state=42):
-        np.random.seed(random_state)
         df["time"] = pd.to_datetime(df["time"])
 
-        balanced_ids = self.balance_species_ids(df, random_state=random_state)
+        # 1. Bestimme die Ziel-ID-Anzahl pro Spezies
+        species_id_counts = df.groupby("species")["id"].nunique()
+        if target_ids_per_species is None:
+            target_ids_per_species = species_id_counts.max()
+        print(f"Ziel-Anzahl von IDs pro Spezies: {target_ids_per_species}")
+
+        # 2. Erstelle eine Liste der zu erzeugenden IDs
+        ids_to_generate = []
+        original_ids = []
+        for species, group in df.groupby("species"):
+            unique_ids = group["id"].unique()
+            original_ids.extend(unique_ids)
+
+            n_current = len(unique_ids)
+            n_to_add = target_ids_per_species - n_current
+
+            if n_to_add > 0:
+                # Füge Original-IDs hinzu
+                ids_to_generate.extend([(species, old_id) for old_id in unique_ids])
+                # Füge neue, zu generierende IDs hinzu (basierend auf zufälliger Auswahl)
+                chosen_ids = self.rng.choice(unique_ids, size=n_to_add, replace=True)
+                ids_to_generate.extend([(species, old_id) for old_id in chosen_ids])
+            else:
+                # Wenn Spezies bereits genug IDs hat, nimm alle Original-IDs
+                # Optional: Man könnte hier auch auf target_ids_per_species undersamplen
+                ids_to_generate.extend([(species, old_id) for old_id in unique_ids])
+
+        # 3. Bereite die finale Zeitachse vor (global für alle!)
+        start_time = df["time"].min()
+        time_index_aug = pd.date_range(start=start_time, periods=target_len, freq="14D")
+
+        # 4. Verarbeite alle IDs (Originale und zu erzeugende)
         augmented_dfs = []
-        start_time = df.time.min()
+        id_augmentation_counter = Counter()
 
-        for species, ids_to_process in tqdm.tqdm(balanced_ids.items(), desc="Augmenting species"):
-            species_df = df[df["species"] == species]
+        # Gruppiere nach der Original-ID für effizienten Zugriff
+        df_grouped_by_id = df.groupby("id")
+
+        print("Resampling und Augmentierung aller Zeitreihen...")
+        for species, tree_id in tqdm(ids_to_generate):
+            df_id_original = df_grouped_by_id.get_group(tree_id)
+
+            # Jeder Durchlauf bekommt einen neuen Augmenter für unterschiedliche Ergebnisse
             augmenter = self._make_augmenter()
-            id_augmentation_counter = {}
 
-            for tree_id in ids_to_process:
-                df_species = species_df[species_df["id"] == tree_id]
-                df_aug = self.resample_time_series(df_species, spectral_bands, max_len, augmenter, start_time)
-                is_duplicated = list(ids_to_process).count(tree_id) > 1
-                
-                if is_duplicated:
-                    count = id_augmentation_counter.get(tree_id, 0) + 1
-                    id_augmentation_counter[tree_id] = count
-                    df_aug["id"] = f"{tree_id}_aug_{count}"
-                else:
-                    pass
+            df_aug = self._resample_time_series(
+                df_id_original, time_index_aug, augmenter
+            )
 
-                augmented_dfs.append(df_aug)
+            if df_aug is None:
+                continue  # Überspringe, wenn die Zeitreihe zu kurz war
+
+            # Zähle, wie oft diese ID schon verwendet wurde, um neue, einzigartige IDs zu erstellen
+            id_augmentation_counter[tree_id] += 1
+            count = id_augmentation_counter[tree_id]
+
+            if count > 1:
+                # Dies ist eine augmentierte Kopie
+                df_aug["id"] = f"{tree_id}_aug_{count - 1}"
+            else:
+                # Dies ist die (resampelte) Original-ID
+                df_aug["id"] = tree_id
+
+            df_aug["species"] = species
+            augmented_dfs.append(df_aug)
 
         df_final = pd.concat(augmented_dfs, ignore_index=True)
         return df_final
-
-    def run(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Run augmentation only for IDs with fewer samples than threshold."""
-        if not self.on:
-            return df
-        
-        id_counts = df.groupby("id").size()
-        ids_to_augment = id_counts[id_counts < self.threshold].index
-        ids_no_augment = id_counts[id_counts >= self.threshold].index
-
-        df_to_augment = df[df["id"].isin(ids_to_augment)]
-        df_no_augment = df[df["id"].isin(ids_no_augment)]
-
-        df_augmented = self.augment(df_to_augment)
-        df_final = pd.concat([df_no_augment, df_augmented], ignore_index=True)
-
-        df_final["id"] = df_final["id"].astype(str)
-        return df_final 

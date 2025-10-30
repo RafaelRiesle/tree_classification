@@ -62,7 +62,7 @@ class LSTMTrainer:
                 LearningRateMonitor(logging_interval="epoch"),
                 EarlyStopping(monitor="train_loss", patience=10),
             ],
-            default_root_dir=RESULTS_DIR
+            default_root_dir=RESULTS_DIR,
         )
 
         trainer.fit(self.model, datamodule=self.data_module)
