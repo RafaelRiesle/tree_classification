@@ -1,5 +1,6 @@
-<a id="readme-top"></a>
-<br />
+`<a id="readme-top"></a>`
+`<br />`
+
 <div align="center">
   <img src="../doc/assets/images/sentinel.jpg" alt="Logo" width="400">
   <h3 align="center">Tree Species Classification</h3>
@@ -27,12 +28,11 @@
   </ol>
 </details>
 
-
 ---
 
 ## Models
 
-This section contains the implementation and training scripts for various models used in the **Tree Species Classification** task.  
+This section contains the implementation and training scripts for various models used in the **Tree Species Classification** task.
 Each model is trained using Sentinel-2 time series data and derived vegetation indices to identify dominant tree species in German forests.
 
 A more detailed description of the model architectures, parameters, and evaluation metrics can be found in the dedicated [Models README](models/README.md).
@@ -41,14 +41,14 @@ A more detailed description of the model architectures, parameters, and evaluati
 
 ### Ensemble Models
 
-The ensemble models combine multiple machine learning algorithms (e.g., Random Forest, Gradient Boosting, XGBoost) to improve prediction accuracy and robustness.  
+The ensemble models combine multiple machine learning algorithms (e.g., Random Forest, Gradient Boosting, XGBoost) to improve prediction accuracy and robustness.
 These models leverage the diversity of different learners to minimize classification errors and handle the high variability of spectral data.
 
 ---
 
 ### LSTM Model
 
-The LSTM (Long Short-Term Memory) model is designed to capture **temporal dependencies** within the Sentinel-2 time series data.  
+The LSTM (Long Short-Term Memory) model is designed to capture **temporal dependencies** within the Sentinel-2 time series data.
 It analyzes the sequential patterns of spectral features and vegetation indices to model seasonal and phenological trends for improved species classification.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -57,7 +57,7 @@ It analyzes the sequential patterns of spectral features and vegetation indices 
 
 ## Pipelines
 
-The repository includes modular pipelines to handle data preprocessing, feature processing, and model training.  
+The repository includes modular pipelines to handle data preprocessing, feature processing, and model training.
 Each pipeline can be executed independently to prepare and process the data efficiently.
 
 ---
@@ -79,8 +79,8 @@ Detecting and optionally removing outliers to improve model stability.
 
 Ensuring that the temporal order of observations is preserved.
 
-
 ### Processing
+
 ```bash
 python3 run_processing_pipeline.py```
 ```
@@ -97,9 +97,11 @@ Creating derived features that capture temporal and spectral variability.
 Preparing the processed feature set for downstream model training.
 
 ### Training
+
 ```bash
 python3 run_training_pipeline.py```
 ```
+
 The training pipeline executes the full model training and evaluation workflow, including:
 
 Loading preprocessed and processed data.
@@ -110,22 +112,23 @@ Evaluating model performance across multiple metrics (accuracy, F1-score, etc.).
 
 Exporting trained models and performance reports for further analysis.
 
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 ## Roadmap
-
-- [x] Ensemble Models
-    - [x] Preprocessing
-    - [x] Processing
-    - [x] Experiments
-    - [x] Evaluation
-- [x] LSTM
-    - [x] Preprocessing
-    - [x] Processing
-    - [x] Experiments
-    - [x] Evaluation
+- [X] PyTs Model
+  - [X] Preprocessing
+  - [X] Processing
+  - [X] Experiments
+  - [X] Evaluation
+- [X] Ensemble Models
+  - [X] Preprocessing
+  - [X] Processing
+  - [X] Experiments
+  - [X] Evaluation
+- [X] LSTM
+  - [X] Preprocessing
+  - [X] Processing
+  - [X] Experiments
+  - [X] Evaluation
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
