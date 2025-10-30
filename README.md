@@ -1,5 +1,6 @@
-<a id="readme-top"></a>
-<br />
+`<a id="readme-top"></a>`
+`<br />`
+
 <div align="center">
     <img src="doc/assets/images/sentinel.jpg", alt="Logo"  width = 400>
 </a>
@@ -26,8 +27,8 @@
 
 ---
 
-
 ## About The Project
+
 This project was developed as part of the Domain Project 2 in collaboration with a State Forestry Administration in Germany.
 The forestry administration is responsible for the sustainable management and maintenance of state forests. A key component of this task is understanding the distribution of tree species, as it serves as the foundation for decisions in forest management, biodiversity conservation, and climate protection.
 
@@ -37,7 +38,6 @@ To achieve a comprehensive classification of tree species across the country, th
 The main challenge lies in reducing data volume while maintaining model performance, as processing long temporal series for each pixel is computationally expensive.
 
 The goal of this project is to develop robust machine learning methods capable of producing reliable tree species classifications using a minimal number of time steps per pixel.
-
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -51,12 +51,14 @@ Follow the instructions below to set up a local development environment for this
 
 You can install the project dependencies using either pip or uv:
 
-pip: 
+pip:
+
 ```bash
 python -m pip install -e .
 ```
 
 uv:
+
 ```bash
 uv pip install -e .
 ```
@@ -75,21 +77,23 @@ _For more examples, please refer to the [Documentation](doc/index.md)_
 
 ## Roadmap
 
-- [x] Basic Data Analysis
-- [x] Advanced Data Analysis & Feature Engineering
-- [x] Baseline Model
-- [x] Machine Learning Models
-    - [ ] Preprocessing & Processing
-    - [ ] LSTM
-    - [ ] Ensemble Models
-    - [ ] Training Pipeline
-    - [ ] Feature Importance
-- [ ] Data Reduction
+- [X] Basic Data Analysis
+- [X] Advanced Data Analysis & Feature Engineering
+- [X] Baseline Model
+- [X] Machine Learning Models
+  - [X] Preprocessing & Processing
+  - [X] LSTM
+  - [X] Ensemble Models
+  - [X] Training Pipeline
+  - [X] Feature Importance
+- [X] Data Reduction
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
 
 ## Contact
+
 - Evelyn Rempel - reev1011@h-ka.de
 - Alexandru Cozma - coal1014@h-ka.de
 - Rafael Riesle - rira1011@h-ka.de
