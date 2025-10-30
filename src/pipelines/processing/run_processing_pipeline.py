@@ -51,7 +51,7 @@ def run_processing():
         InterpolateNaNs(on=True, method="linear"),
         Smooth(on=True, overwrite=True),
         CalculateIndices(on=True),
-        TemporalFeatures(on=False),
+        TemporalFeatures(on=True),
         Interpolation(on=True),
     ]
 
@@ -62,13 +62,13 @@ def run_processing():
         CalculateIndices(on=True),
         DetectDisturbedTrees(on=False),
         AdjustLabels(on=False),
-        DataAugmentation(on=False, threshold=150),
+        DataAugmentation(on=False),
         TimeSeriesAggregate(on=True, freq=2, method="mean"),
         InterpolateNaNs(on=True, method="linear"),
         Smooth(on=True, overwrite=True),
         Interpolation(on=True),
         CalculateIndices(on=True),
-        TemporalFeatures(on=False),
+        TemporalFeatures(on=True),
     ]
     for split_name, path_dict in split_to_paths.items():
         input_path = path_dict["input"]

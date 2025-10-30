@@ -16,7 +16,7 @@ def define_models():
     return [
         (
             RandomForestClassifier,
-            {"n_estimators": [200], "criterion": ["gini"]},
+            {"n_estimators": [200], "criterion": ["gini"], "class_weight":["balanced"]},
         ),
         # (
         #     xgb.XGBClassifier,
