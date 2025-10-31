@@ -62,6 +62,9 @@ uv pip install -e .
 
 
 ---
+## Usage
+Insert trainset.csv into data/raw and FINAL_Validierungs_Datensatz.csv
+---
 
 ## Roadmap
 
