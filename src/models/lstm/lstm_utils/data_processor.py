@@ -64,7 +64,7 @@ class DataProcessor:
         self.train_df = pd.get_dummies(self.train_df, columns=categorical_cols)
         self.val_df = pd.get_dummies(self.val_df, columns=categorical_cols)
         self.test_df = pd.get_dummies(self.test_df, columns=categorical_cols)
-
+        # 
         self.val_df = self.val_df.reindex(columns=self.train_df.columns, fill_value=0)
         self.test_df = self.test_df.reindex(columns=self.train_df.columns, fill_value=0)
 
