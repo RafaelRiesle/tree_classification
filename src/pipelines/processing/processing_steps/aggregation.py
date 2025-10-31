@@ -27,9 +27,7 @@ class TimeSeriesAggregate:
         resampled["id"] = group["id"].iloc[0]
         return resampled
 
-    def aggregate_timeseries(
-        self, df: pd.DataFrame, freq: int = 1, method: str = "median"
-    ) -> pd.DataFrame:
+    def aggregate_timeseries(self, df: pd.DataFrame, freq: int = 1, method: str = "median") -> pd.DataFrame:
         df = df.copy()
         df["time"] = pd.to_datetime(df["time"])
 
@@ -37,8 +35,9 @@ class TimeSeriesAggregate:
         if method not in agg_methods:
             raise ValueError(f"Method must be one of {agg_methods}")
 
-        df_categ = df[["id", "species", "disturbance_year"]].drop_duplicates("id")
-        df = df.drop(columns=["species", "disturbance_year"])
+        meta_cols = [c for c in ["id", "species", "disturbance_year"] if c in df.columns]
+        df_categ = df[meta_cols].drop_duplicates("id") if len(meta_cols) > 1 else df[["id"]].drop_duplicates("id")
+        df = df.drop(columns=[c for c in ["species", "disturbance_year"] if c in df.columns], errors="ignore")
 
         df["year_week"] = df["time"].dt.strftime("%Y-%W")
         min_date = df["time"].min()
@@ -47,14 +46,10 @@ class TimeSeriesAggregate:
         all_yearweeks = pd.period_range(start=min_date, end=max_date, freq="W-MON")
         all_yearweeks = all_yearweeks.to_timestamp().strftime("%Y-%W")
 
-        df = df.groupby(["id", "year_week"], as_index=False).agg(
-            method, numeric_only=True
-        )
+        df = df.groupby(["id", "year_week"], as_index=False).agg(method, numeric_only=True)
         ids = df["id"].unique()
 
-        full_index = pd.MultiIndex.from_product(
-            [ids, all_yearweeks], names=["id", "year_week"]
-        )
+        full_index = pd.MultiIndex.from_product([ids, all_yearweeks], names=["id", "year_week"])
         full_df = full_index.to_frame(index=False)
         df = full_df.merge(df, on=["id", "year_week"], how="left")
 
@@ -67,8 +62,8 @@ class TimeSeriesAggregate:
         )
         df = df.merge(df_categ, on="id", how="left")
         df = df.sort_values(["id", "time"]).reset_index(drop=True)
-
         return df
+
 
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         if not self.on:

@@ -1,6 +1,8 @@
 from collections import Counter
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import pandas as pd
+import pickle
+import os
 from models.lstm.lstm_utils.data_loader import CSVDataLoader
 from models.lstm.lstm_utils.utility_functions import df_to_sequences
 
@@ -101,10 +103,33 @@ class DataProcessor:
             for i in range(len(self.le.classes_))
         ]
 
+    def save_encoders(self, save_dir="encoders"):
+        """Speichert LabelEncoder, StandardScaler und Feature-Namen als Pickle-Dateien."""
+        os.makedirs(save_dir, exist_ok=True)
+
+        # LabelEncoder speichern
+        le_path = os.path.join(save_dir, "label_encoder.pkl")
+        with open(le_path, "wb") as f:
+            pickle.dump(self.le, f)
+        print(f"LabelEncoder gespeichert unter: {le_path}")
+
+        # StandardScaler speichern
+        scaler_path = os.path.join(save_dir, "scaler.pkl")
+        with open(scaler_path, "wb") as f:
+            pickle.dump(self.scaler, f)
+        print(f"StandardScaler gespeichert unter: {scaler_path}")
+
+        # Feature-Namen speichern
+        features_path = os.path.join(save_dir, "feature_columns.pkl")
+        with open(features_path, "wb") as f:
+            pickle.dump(self.feature_columns, f)
+        print(f"Feature-Namen gespeichert unter: {features_path}")
+
     def run(self):
         self.load_data()
         self.preprocess()
         self.create_sequences_and_weights()
+        self.save_encoders()
 
         print("\nFeature Columns after Encoding & Scaling:")
         print(len(self.feature_columns))

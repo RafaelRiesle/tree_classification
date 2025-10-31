@@ -24,7 +24,7 @@ class TrainingPipeline:
         lr: float = 1e-3,
         max_epochs: int = 50,
     ):
-        self.BASE_DIR = base_dir or Path(__file__).resolve().parents[3]
+        self.BASE_DIR = base_dir or Path(__file__).resolve().parents[1]
         self.DATA_PATH = self.BASE_DIR / "data/raw/raw_trainset.csv"
         self.DATA_DIR = self.BASE_DIR / "data"
         self.RAW_DIR = self.BASE_DIR / "raw"
@@ -89,9 +89,9 @@ class TrainingPipeline:
         print("=== Starting Training Pipeline ===")
         self.run_preprocessing()
         self.run_processing()
-        self.run_pyts()
+        #self.run_pyts()
         # self.run_ensemble_model()
-        # self.run_lstm()
+        self.run_lstm()
 
         print("=== Training Pipeline Finished ===")
 
@@ -102,6 +102,6 @@ if __name__ == "__main__":
         remove_outliers=False,
         force_split_creation=False,
         force_preprocessing=False,
-        force_processing=True,
+        force_processing=False,
     )
     pipeline.run()
